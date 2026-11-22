@@ -1,0 +1,20 @@
+[package]
+name = "statsapi-cfpb"
+version = "0.1.0"
+edition.workspace = true
+license = "GPL-3.0-or-later"
+publish = false
+description = "Reusable client for CFPB complaint and consumer credit trends data."
+
+[lib]
+name = "statsapi_cfpb"
+path = "src/lib.rs"
+
+[dependencies]
+csv = "1"
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+sha2 = "0.10"
+
+[lints]
+workspace = true

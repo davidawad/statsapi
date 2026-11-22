@@ -1,0 +1,22 @@
+[package]
+name = "statsapi-urban-education"
+version = "0.1.0"
+edition.workspace = true
+license = "GPL-3.0-or-later"
+publish = false
+description = "Reusable client for the Urban Institute Education Data Portal"
+readme = "README.md"
+
+[dependencies]
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+sha2 = "0.10"
+thiserror = "2"
+url = "2"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+wiremock = "0.6"
+
+[lints]
+workspace = true

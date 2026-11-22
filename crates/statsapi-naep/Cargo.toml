@@ -1,0 +1,17 @@
+[package]
+name = "statsapi-naep"
+version = "0.1.0"
+edition.workspace = true
+license = "GPL-3.0-or-later"
+publish = false
+description = "Reusable Rust client for the NAEP Data Service API"
+
+[lints]
+workspace = true
+
+[dependencies]
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+

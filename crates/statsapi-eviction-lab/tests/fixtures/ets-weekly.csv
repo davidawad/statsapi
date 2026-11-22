@@ -1,0 +1,5 @@
+type,GEOID,racial_majority,week,week_date,filings_2020,filings_avg,filings_avg_prepandemic_baseline,last_updated
+Census Tract,12345000100,Synthetic,4,2025-02-02,3,5,2,2025-02-10
+Census Tract,12345000200,Synthetic,4,2025-02-02,4,6,3,2025-02-10
+Census Tract,12345000100,Synthetic,5,2025-02-09,8,11,5,2025-02-10
+Census Tract,12345000200,Synthetic,5,2025-02-09,9,8,3,2025-02-10

@@ -1,0 +1,2 @@
+county,county_name,num_below_p50,pop2018,ec_county,ec_se_county,child_ec_county,child_ec_se_county,ec_grp_mem_county,ec_high_county,ec_high_se_county,child_high_ec_county,child_high_ec_se_county,ec_grp_mem_high_county,exposure_grp_mem_county,exposure_grp_mem_high_county,child_exposure_county,child_high_exposure_county,bias_grp_mem_county,bias_grp_mem_high_county,child_bias_county,child_high_bias_county,clustering_county,support_ratio_county,volunteering_rate_county,civic_organizations_county
+765,Synthetic County,,,.25,,,,,,,,,,,,,,,,,,.35,.45,.16,.06

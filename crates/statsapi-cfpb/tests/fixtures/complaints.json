@@ -1,0 +1,1 @@
+{"hits":{"total":{"value":13,"relation":"eq"}},"aggregations":{"product":{"product":{"buckets":[{"key":"Synthetic product A","doc_count":8},{"key":"Debt collection","doc_count":3},{"key":"Synthetic product B","doc_count":2}]}}}}

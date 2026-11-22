@@ -1,0 +1,1 @@
+{"api_version":"1.0","pagination":{"count":2,"page":1,"pages":1,"per_page":100},"results":[{"committee_id":"C99990001","count":3,"cycle":2024,"state":"XX","state_full":"Example State","total":123.45,"zip":"00000"},{"committee_id":"C99990002","count":2,"cycle":2024,"state":"XX","state_full":"Example State","total":67.89,"zip":"00000"}]}

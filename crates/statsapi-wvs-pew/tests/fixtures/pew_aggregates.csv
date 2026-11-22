@@ -1,0 +1,3 @@
+country,metric,demographic,value,vintage,date,source_url
+AAA,video_use,all,37,synthetic-2024,2024-03-14,https://example.test/report
+AAA,video_use,young_adults,61,synthetic-2024,2024-03-14,https://example.test/report

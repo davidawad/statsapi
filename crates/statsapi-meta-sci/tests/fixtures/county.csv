@@ -1,0 +1,4 @@
+user_country,friend_country,user_region,friend_region,scaled_sci
+US,US,00001,00001,13
+US,US,00001,00003,8
+US,US,00003,00001,8

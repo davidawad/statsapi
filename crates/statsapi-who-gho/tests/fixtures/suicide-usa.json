@@ -1,0 +1,28 @@
+{
+  "value": [
+    {
+      "IndicatorCode": "SYNTHETIC_RATE",
+      "SpatialDim": "ZZZ",
+      "TimeDim": 2023,
+      "Dim1": "SEX_BTSX",
+      "NumericValue": 17.1,
+      "Value": "17.1 [synthetic interval]"
+    },
+    {
+      "IndicatorCode": "SYNTHETIC_RATE",
+      "SpatialDim": "ZZZ",
+      "TimeDim": 2023,
+      "Dim1": "SEX_FMLE",
+      "NumericValue": 7.2,
+      "Value": "7.2 [synthetic interval]"
+    },
+    {
+      "IndicatorCode": "SYNTHETIC_RATE",
+      "SpatialDim": "ZZZ",
+      "TimeDim": 2023,
+      "Dim1": "SEX_MLE",
+      "NumericValue": 24.3,
+      "Value": "24.3 [synthetic interval]"
+    }
+  ]
+}

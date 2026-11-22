@@ -1,0 +1,4 @@
+user_country,friend_country,user_region,friend_region,scaled_sci
+US,US,90001,90001,17
+US,US,90001,90002,9
+US,US,90002,90001,9

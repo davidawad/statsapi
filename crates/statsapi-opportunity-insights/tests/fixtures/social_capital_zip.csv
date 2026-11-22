@@ -1,0 +1,2 @@
+zip,county,num_below_p50,pop2018,ec_zip,ec_se_zip,nbhd_ec_zip,ec_grp_mem_zip,ec_high_zip,ec_high_se_zip,nbhd_ec_high_zip,ec_grp_mem_high_zip,exposure_grp_mem_zip,exposure_grp_mem_high_zip,nbhd_exposure_zip,bias_grp_mem_zip,bias_grp_mem_high_zip,nbhd_bias_zip,nbhd_bias_high_zip,clustering_zip,support_ratio_zip,volunteering_rate_zip,civic_organizations_zip
+98765,765,,,.125,,,,,,,,,,,,,,,.3,.4,.15,.05

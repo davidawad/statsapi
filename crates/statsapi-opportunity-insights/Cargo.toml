@@ -1,0 +1,16 @@
+[package]
+name = "statsapi-opportunity-insights"
+version = "0.1.0"
+edition.workspace = true
+license = "GPL-3.0-or-later"
+description = "Blocking client for Opportunity Insights public CSV datasets"
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+csv = "1.4"
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
+sha2 = "0.10"
+thiserror = "2"

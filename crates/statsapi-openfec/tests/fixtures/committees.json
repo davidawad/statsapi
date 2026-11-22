@@ -1,0 +1,1 @@
+{"api_version":"1.0","pagination":{"count":2,"page":1,"pages":1,"per_page":100},"results":[{"committee_id":"C99990001","committee_type":"H","party":"DEM","name":"Synthetic House Committee"},{"committee_id":"C99990002","committee_type":"N","party":null,"name":"Synthetic Non-candidate Committee"}]}

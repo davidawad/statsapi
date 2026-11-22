@@ -1,0 +1,7 @@
+sedacounty,sedacountyname,subcat,subgroup,cs_mn_avg_mth_ol,cs_mn_avg_rla_ol,cs_mn_tlr_mth_ol,cs_mn_tlr_rla_ol
+00001,Example County,all,all,0.6,0.4,0.3,0.1
+00001,Example County,race,wht,0.8,0.7,0.3,0.1
+00001,Example County,race,blk,0.4,0.3,0.3,0.1
+00001,Example County,race,hsp,0.5,0.4,0.3,0.1
+00001,Example County,ecd,nec,0.7,0.6,0.3,0.1
+00001,Example County,ecd,ecd,0.2,0.1,0.3,0.1

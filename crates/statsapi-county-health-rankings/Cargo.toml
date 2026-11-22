@@ -1,0 +1,15 @@
+[package]
+name = "statsapi-county-health-rankings"
+version = "0.1.0"
+edition.workspace = true
+license = "GPL-3.0-or-later"
+publish = false
+description = "Reusable client for County Health Rankings & Roadmaps annual data"
+
+[dependencies]
+csv = "1"
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
+sha2 = "0.10"
+
+[lints]
+workspace = true

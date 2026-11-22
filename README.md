@@ -2,6 +2,10 @@
 
 Typed, blocking Rust clients for 26 public statistics sources (BLS, BEA, Census-adjacent federal datasets, World Bank, WHO, SDMX agencies, CDC and other Socrata portals, education, housing, credit, elections and more), so you can pull official numbers without writing a scraper per agency.
 
+![Terminal output of the statsapi-bls showcase example: BLS LAUS and CES series, decoded from the crate's synthetic test fixture](docs/showcase/bls-terminal.png)
+
+The image is the output of `cargo run -p statsapi-bls --example showcase`: the example decodes the crate's own synthetic test fixture (the real upstream layout, invented values) through the public API, offline. Reproduce it with `docs/showcase/make-screenshots.sh` (see [docs/showcase.md](docs/showcase.md)).
+
 ## Install
 
 These crates are not on crates.io. Add the one you need as a git dependency:

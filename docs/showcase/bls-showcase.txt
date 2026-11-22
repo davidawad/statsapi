@@ -1,0 +1,4 @@
+BLS synthetic sample
+Series                   Period                  Value
+LAUS TEST00000000000003  2099 January              8.7
+CES SMU12000000000000001 2099 January         123000.0

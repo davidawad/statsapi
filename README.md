@@ -30,6 +30,7 @@ Build everything: `cargo build --workspace`. The offline tests need no network o
 | `statsapi-bls` | Reusable blocking Rust client for the U.S. Bureau of Labor Statistics public data APIs | [README](crates/statsapi-bls/README.md) |
 | `statsapi-cdc-wonder` | Reusable blocking client for the CDC WONDER XML API and CDC mortality datasets on data.cdc.gov | [README](crates/statsapi-cdc-wonder/README.md) |
 | `statsapi-census-bds` | Reusable blocking Rust client for the U.S. Census Bureau Business Dynamics Statistics (BDS) timeseries API | [README](crates/statsapi-census-bds/README.md) |
+| `statsapi-census` | Reusable client and parsers for Census API and Census Reporter ACS data | [README](crates/statsapi-census/README.md) |
 | `statsapi-cfpb` | Reusable client for CFPB complaint and consumer credit trends data. | [README](crates/statsapi-cfpb/README.md) |
 | `statsapi-cisa-kev` | Reusable blocking Rust client for the CISA Known Exploited Vulnerabilities catalog and NVD CVE counts | [README](crates/statsapi-cisa-kev/README.md) |
 | `statsapi-cms` | Reusable client for the CMS data.cms.gov data-api v1 (Medicare geographic variation, Part D opioid prescribing) | [README](crates/statsapi-cms/README.md) |
@@ -39,11 +40,13 @@ Build everything: `cargo build --workspace`. The offline tests need no network o
 | `statsapi-drought-monitor` | Reusable blocking client for the US Drought Monitor data services | [README](crates/statsapi-drought-monitor/README.md) |
 | `statsapi-ember` | Reusable blocking client that streams Ember electricity generation CSV downloads | [README](crates/statsapi-ember/README.md) |
 | `statsapi-envirofacts` | Reusable blocking Rust client for EPA Envirofacts (TRI) and the EPA Superfund NPL ArcGIS layer | [README](crates/statsapi-envirofacts/README.md) |
+| `statsapi-epa-aqs` | Reusable blocking client for the EPA Air Quality System API | [README](crates/statsapi-epa-aqs/README.md) |
 | `statsapi-eurostat` | Reusable blocking client for the Eurostat dissemination API (JSON-stat) and GISCO NUTS boundaries | [README](crates/statsapi-eurostat/README.md) |
 | `statsapi-eviction-lab` | Reusable blocking client for Eviction Lab aggregate data | [README](crates/statsapi-eviction-lab/README.md) |
 | `statsapi-faostat` | Reusable blocking client that streams FAOSTAT bulk datasets and filters one country in memory | [README](crates/statsapi-faostat/README.md) |
 | `statsapi-fars` | Reusable blocking client for NHTSA FARS annual CSV archives. | [README](crates/statsapi-fars/README.md) |
 | `statsapi-fbi-cde` | Blocking Rust client for the FBI Crime Data Explorer summarized-offense API | [README](crates/statsapi-fbi-cde/README.md) |
+| `statsapi-fcc-bdc` | Reusable blocking client for FCC Broadband Data Collection public files | [README](crates/statsapi-fcc-bdc/README.md) |
 | `statsapi-fema` | Reusable blocking client for OpenFEMA and FEMA public data services | [README](crates/statsapi-fema/README.md) |
 | `statsapi-fhfa` | Reusable streaming client for FHFA annual house price index files by ZIP, county and tract | [README](crates/statsapi-fhfa/README.md) |
 | `statsapi-gdacs` | Reusable blocking client for the GDACS global disaster alert API | [README](crates/statsapi-gdacs/README.md) |
@@ -55,15 +58,18 @@ Build everything: `cargo build --workspace`. The offline tests need no network o
 | `statsapi-hud-user` | Reusable blocking Rust client for the HUD USER FMR, income limits, and USPS crosswalk APIs | [README](crates/statsapi-hud-user/README.md) |
 | `statsapi-imf-datamapper` | Reusable blocking client for the IMF DataMapper API (World Economic Outlook series) | [README](crates/statsapi-imf-datamapper/README.md) |
 | `statsapi-ioda` | Reusable blocking client for the IODA internet outage API | [README](crates/statsapi-ioda/README.md) |
+| `statsapi-irs-eo` | Reusable parsers and blocking access helpers for IRS exempt-organization files | [README](crates/statsapi-irs-eo/README.md) |
 | `statsapi-irs-soi` | Reusable client for IRS Statistics of Income ZIP and migration datasets | [README](crates/statsapi-irs-soi/README.md) |
 | `statsapi-launch-library` | Reusable blocking client for The Space Devs Launch Library 2 launch counts and upcoming launches | [README](crates/statsapi-launch-library/README.md) |
 | `statsapi-meta-sci` | Reusable client for Meta's Social Connectedness Index files on HDX | [README](crates/statsapi-meta-sci/README.md) |
 | `statsapi-naep` | Reusable Rust client for the NAEP Data Service API | [README](crates/statsapi-naep/README.md) |
+| `statsapi-nara` | Reusable NARA Catalog API v2 client | [README](crates/statsapi-nara/README.md) |
 | `statsapi-nasa-power` | Reusable blocking client for the NASA POWER daily point API | [README](crates/statsapi-nasa-power/README.md) |
 | `statsapi-noaa-cdo` | Reusable blocking client for the NOAA NCEI Access Data Service (GHCN-Daily summaries and 1991-2020 climate normals) | [README](crates/statsapi-noaa-cdo/README.md) |
 | `statsapi-noaa` | Reusable client for NOAA NCEI Storm Events bulk files | [README](crates/statsapi-noaa/README.md) |
 | `statsapi-nws` | Reusable blocking client for the NOAA National Weather Service alerts and forecast API | [README](crates/statsapi-nws/README.md) |
 | `statsapi-ons` | Reusable blocking client for the UK Office for National Statistics API and postcodes.io | [README](crates/statsapi-ons/README.md) |
+| `statsapi-ookla` | Reusable parser and client helpers for Ookla Open Data performance tiles | [README](crates/statsapi-ookla/README.md) |
 | `statsapi-openaq` | Reusable blocking Rust client for the OpenAQ v3 air quality API | [README](crates/statsapi-openaq/README.md) |
 | `statsapi-openfec` | Blocking Rust client for OpenFEC aggregate and committee endpoints | [README](crates/statsapi-openfec/README.md) |
 | `statsapi-opensky` | Reusable blocking client for the OpenSky Network live state-vector REST API | [README](crates/statsapi-opensky/README.md) |
@@ -84,7 +90,9 @@ Build everything: `cargo build --workspace`. The offline tests need no network o
 | `statsapi-uscourts-bankruptcy` | Blocking Rust client for U.S. Courts F-5A bankruptcy statistics | [README](crates/statsapi-uscourts-bankruptcy/README.md) |
 | `statsapi-usda-food-access` | Reusable client for USDA ERS food access and FNS SNAP data files | [README](crates/statsapi-usda-food-access/README.md) |
 | `statsapi-usgs-earthquakes` | Reusable blocking client for the USGS Earthquake Catalog FDSN event API | [README](crates/statsapi-usgs-earthquakes/README.md) |
+| `statsapi-vdem` | Reusable V-Dem Country-Year dataset client | [README](crates/statsapi-vdem/README.md) |
 | `statsapi-who-gho` | Reusable blocking client for the WHO Global Health Observatory OData API | [README](crates/statsapi-who-gho/README.md) |
+| `statsapi-wikidata-events` | Wikidata event and Wikipedia Current Events client | [README](crates/statsapi-wikidata-events/README.md) |
 | `statsapi-wikimedia-hiringlab` | Reusable blocking client for Wikimedia pageviews and Indeed Hiring Lab job postings | [README](crates/statsapi-wikimedia-hiringlab/README.md) |
 | `statsapi-worldbank` | Reusable blocking client for the World Bank Indicators API v2 | [README](crates/statsapi-worldbank/README.md) |
 | `statsapi-wvs-pew` | Parsers and weighting for manually downloaded World Values Survey and Pew data files | [README](crates/statsapi-wvs-pew/README.md) |

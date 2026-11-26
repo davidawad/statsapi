@@ -1,0 +1,18 @@
+use statsapi_usgs_earthquakes::{Area, Client, Order, Query};
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let query = Query {
+        area: Area::Radius {
+            lat: 40.54,
+            lon: -74.36,
+            km: 100.0,
+        },
+        start: "2016-11-23".into(),
+        min_magnitude: Some(3.0),
+    };
+    let client = Client::new();
+    let (count, _url) = client.count(&query, "2026-11-23")?;
+    let (strongest, _url) = client.top_event(&query, "2026-11-23", Order::Magnitude)?;
+    println!("{count} events; strongest {strongest:?}");
+    Ok(())
+}

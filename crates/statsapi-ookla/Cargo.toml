@@ -1,0 +1,17 @@
+[package]
+name = "statsapi-ookla"
+version = "0.1.0"
+edition.workspace = true
+license = "GPL-3.0-or-later"
+publish = false
+description = "Reusable parser and client helpers for Ookla Open Data performance tiles"
+readme = "README.md"
+
+[lints]
+workspace = true
+
+[dependencies]
+parquet = { version = "54.3", default-features = false, features = ["snap", "flate2", "zstd", "lz4", "brotli"] }
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
+thiserror = "2"
+

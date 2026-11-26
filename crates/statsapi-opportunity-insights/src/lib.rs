@@ -1,14 +1,16 @@
 //! Blocking downloads and CSV decoding for public Opportunity Insights datasets.
 
 use std::{
-    fs, io,
+    cell::Cell,
+    io,
     path::{Path, PathBuf},
     thread,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
+use ephemeral_cache::EphemeralCache;
+pub use ephemeral_cache::Source;
 use reqwest::{blocking::Client as HttpClient, StatusCode};
-use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 const ATLAS_URL: &str =
@@ -159,7 +161,8 @@ pub enum Error {
 #[derive(Clone, Debug)]
 pub struct Client {
     http: HttpClient,
-    cache_dir: Option<PathBuf>,
+    cache: Option<EphemeralCache>,
+    source: Cell<Source>,
     offline: bool,
 }
 
@@ -178,33 +181,33 @@ impl Client {
         ClientBuilder::default()
     }
 
-    /// Downloads and decodes a dataset, using and populating the optional cache.
+    /// Returns the path that answered the last [`Client::fetch`]: `stream`
+    /// (download parsed in memory, nothing persisted) or `cache`.
+    #[must_use]
+    pub fn last_source(&self) -> Source {
+        self.source.get()
+    }
+
+    /// Downloads and decodes a dataset. Streams by default; only a client built
+    /// with [`ClientBuilder::cache_dir`] keeps a last-resort TTL/size-capped cache.
     ///
     /// # Errors
     /// Returns an HTTP, cache, status, or CSV decoding error.
     pub fn fetch(&self, dataset: Dataset) -> Result<CsvTable, Error> {
         let url = dataset.url();
-        let bytes = if let Some(cache_dir) = &self.cache_dir {
-            let path = cache_dir.join(cache_key(&url));
-            match fs::read(&path) {
-                Ok(bytes) => bytes,
-                Err(error) if error.kind() == io::ErrorKind::NotFound && self.offline => {
-                    return Err(Error::OfflineCacheMiss(url));
-                }
-                Err(error) if error.kind() == io::ErrorKind::NotFound => {
-                    let bytes = self.download(&url)?;
-                    fs::create_dir_all(cache_dir)?;
-                    let temporary = path.with_extension(format!("tmp.{}", std::process::id()));
-                    fs::write(&temporary, &bytes)?;
-                    fs::rename(temporary, path)?;
-                    bytes
-                }
-                Err(error) => return Err(error.into()),
-            }
+        let cached = self.cache.as_ref().and_then(|cache| cache.get(&url));
+        let bytes = if let Some(bytes) = cached {
+            self.source.set(Source::Cache);
+            bytes
         } else if self.offline {
             return Err(Error::OfflineCacheMiss(url));
         } else {
-            self.download(&url)?
+            let bytes = self.download(&url)?;
+            self.source.set(Source::Stream);
+            if let Some(cache) = &self.cache {
+                cache.put(&url, &bytes)?;
+            }
+            bytes
         };
         CsvTable::from_bytes(&bytes)
     }
@@ -251,7 +254,8 @@ impl Default for ClientBuilder {
 }
 
 impl ClientBuilder {
-    /// Sets a caller-supplied cache directory.
+    /// Enables the last-resort ephemeral cache (7-day TTL, 256 MiB cap, oldest
+    /// first eviction) in a caller-supplied directory. Off by default.
     #[must_use]
     pub fn cache_dir(mut self, path: impl AsRef<Path>) -> Self {
         self.cache_dir = Some(path.as_ref().to_owned());
@@ -290,7 +294,8 @@ impl ClientBuilder {
             .build()?;
         Ok(Client {
             http,
-            cache_dir: self.cache_dir,
+            cache: self.cache_dir.map(EphemeralCache::bulk),
+            source: Cell::new(Source::Stream),
             offline: self.offline,
         })
     }
@@ -307,15 +312,6 @@ fn retry_delay(attempt: u32) -> Duration {
         .subsec_millis()
         % 251;
     Duration::from_millis(250 * u64::from(attempt + 1) + u64::from(jitter))
-}
-
-fn cache_key(url: &str) -> String {
-    Sha256::digest(url.as_bytes())
-        .iter()
-        .fold(String::with_capacity(64), |mut out, byte| {
-            let _ = std::fmt::Write::write_fmt(&mut out, format_args!("{byte:02x}"));
-            out
-        })
 }
 
 #[cfg(test)]

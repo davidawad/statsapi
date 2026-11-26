@@ -1,10 +1,16 @@
 //! Blocking HTTP and response decoding for caller-selected SDMX observations.
 
+use ephemeral_cache::EphemeralCache;
+pub use ephemeral_cache::Source;
 use serde_json::{json, Value};
-use sha2::{Digest, Sha256};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use thiserror::Error;
+
+/// Cached responses older than this are never served (live responses: hours).
+pub const CACHE_TTL: Duration = Duration::from_hours(6);
+/// The cache directory is pruned oldest-first to at most this many bytes.
+pub const CACHE_CAP_BYTES: u64 = 8 * 1024 * 1024;
 
 /// Agencies with request conventions used by this client.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -132,7 +138,7 @@ impl ClientBuilder {
         Self::default()
     }
 
-    /// Stores successful response bodies under this caller-owned directory.
+    /// Keeps a last-resort ephemeral cache under this caller-owned directory.
     #[must_use]
     pub fn cache_dir(mut self, path: impl AsRef<Path>) -> Self {
         self.cache_dir = Some(path.as_ref().to_path_buf());
@@ -179,18 +185,21 @@ impl ClientBuilder {
             .build()?;
         Ok(Client {
             http,
-            cache_dir: self.cache_dir,
+            cache: self
+                .cache_dir
+                .map(|dir| EphemeralCache::new(dir, CACHE_TTL, CACHE_CAP_BYTES)),
             retries: self.retries,
             cache_mode: self.cache_mode,
         })
     }
 }
 
-/// Blocking SDMX HTTP client with optional caller-managed response caching.
+/// Blocking SDMX HTTP client: live API first, with an optional ephemeral
+/// response cache (see [`CACHE_TTL`], [`CACHE_CAP_BYTES`]) as the last resort.
 #[derive(Clone, Debug)]
 pub struct Client {
     http: reqwest::blocking::Client,
-    cache_dir: Option<PathBuf>,
+    cache: Option<EphemeralCache>,
     retries: u32,
     cache_mode: CacheMode,
 }
@@ -211,27 +220,44 @@ impl Client {
         ClientBuilder::new()
     }
 
-    /// Fetches a URL, returning a cached body when one exists.
+    /// Fetches a URL from the live API, falling back to an unexpired cache
+    /// entry only when the request fails.
     ///
     /// Successful responses are atomically written to the optional cache
-    /// directory. Transient transport failures, HTTP 429, and 5xx responses
+    /// directory. Transient transport errors, HTTP 429, and 5xx responses
     /// receive bounded full-jitter retries; other statuses are returned.
     ///
     /// # Errors
     ///
     /// Returns an HTTP, cache, or transport error when the request fails.
     pub fn get(&self, url: &str) -> Result<Vec<u8>, Error> {
-        if let Some(path) = self.cache_path(url) {
-            match std::fs::read(path) {
-                Ok(body) => return Ok(body),
-                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-                Err(error) => return Err(error.into()),
-            }
-        }
-        if self.cache_mode == CacheMode::Only {
-            return Err(Error::CacheMiss(url.to_string()));
-        }
+        self.get_sourced(url).map(|(body, _)| body)
+    }
 
+    /// Like [`Self::get`], also reporting the access path used.
+    ///
+    /// # Errors
+    ///
+    /// Returns an HTTP, cache, or transport error when the request fails.
+    pub fn get_sourced(&self, url: &str) -> Result<(Vec<u8>, Source), Error> {
+        let cached = || self.cache.as_ref().and_then(|cache| cache.get(url));
+        if self.cache_mode == CacheMode::Only {
+            return cached()
+                .map(|body| (body, Source::Cache))
+                .ok_or_else(|| Error::CacheMiss(url.to_string()));
+        }
+        match self.request(url) {
+            Ok(body) => {
+                if let Some(cache) = &self.cache {
+                    cache.put(url, &body)?;
+                }
+                Ok((body, Source::Api))
+            }
+            Err(error) => cached().map(|body| (body, Source::Cache)).ok_or(error),
+        }
+    }
+
+    fn request(&self, url: &str) -> Result<Vec<u8>, Error> {
         let mut attempt = 0;
         loop {
             match self.http.get(url).send() {
@@ -240,9 +266,7 @@ impl Client {
                     if status.is_success() {
                         match response.bytes() {
                             Ok(body) => {
-                                let body = body.to_vec();
-                                self.store_cache(url, &body)?;
-                                return Ok(body);
+                                return Ok(body.to_vec());
                             }
                             Err(error)
                                 if attempt < self.retries
@@ -281,31 +305,6 @@ impl Client {
             attempt += 1;
         }
     }
-
-    fn cache_path(&self, url: &str) -> Option<PathBuf> {
-        self.cache_dir.as_ref().map(|dir| dir.join(cache_key(url)))
-    }
-
-    fn store_cache(&self, url: &str, body: &[u8]) -> Result<(), Error> {
-        let Some(path) = self.cache_path(url) else {
-            return Ok(());
-        };
-        std::fs::create_dir_all(path.parent().unwrap_or_else(|| Path::new(".")))?;
-        let temp = path.with_extension(format!("tmp.{}", std::process::id()));
-        std::fs::write(&temp, body)?;
-        std::fs::rename(temp, path)?;
-        Ok(())
-    }
-}
-
-fn cache_key(url: &str) -> String {
-    Sha256::digest(url.as_bytes())
-        .iter()
-        .fold(String::with_capacity(64), |mut digest, byte| {
-            use std::fmt::Write as _;
-            let _ = write!(digest, "{byte:02x}");
-            digest
-        })
 }
 
 fn pause(attempt: u32, retry_after: Option<u64>) {
@@ -475,5 +474,67 @@ mod tests {
             .expect("second request succeeds");
         server.join().expect("test server exits");
         assert_eq!(response, b"csv");
+    }
+
+    #[test]
+    fn live_answer_is_api_then_cache_only_when_the_api_fails() {
+        let listener = TcpListener::bind("127.0.0.1:0").expect("bind local test server");
+        let address = listener.local_addr().expect("local server address");
+        let server = thread::spawn(move || {
+            for (status, body) in [("200 OK", "csv"), ("500 Internal Server Error", "")] {
+                let (mut stream, _) = listener.accept().expect("accept request");
+                let mut request = [0; 1024];
+                let _ = stream.read(&mut request).expect("read request");
+                write!(
+                    stream,
+                    "HTTP/1.1 {status}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+                    body.len()
+                )
+                .expect("write response");
+            }
+        });
+        let dir = std::env::temp_dir().join(format!("sdmx-cache-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let client = Client::builder()
+            .retries(0)
+            .cache_dir(&dir)
+            .build()
+            .expect("client builds");
+        let url = format!("http://{address}/data");
+        assert_eq!(
+            client.get_sourced(&url).expect("live"),
+            (b"csv".to_vec(), Source::Api)
+        );
+        assert_eq!(
+            client.get_sourced(&url).expect("fallback"),
+            (b"csv".to_vec(), Source::Cache)
+        );
+        server.join().expect("test server exits");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn offline_expired_entry_is_a_miss() {
+        let dir = std::env::temp_dir().join(format!("sdmx-expired-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        EphemeralCache::new(&dir, CACHE_TTL, CACHE_CAP_BYTES)
+            .put("u", b"x")
+            .expect("seed");
+        let client = Client::builder()
+            .cache_dir(&dir)
+            .cache_mode(CacheMode::Only)
+            .build()
+            .expect("client builds");
+        assert_eq!(client.get_sourced("u").expect("fresh").1, Source::Cache);
+        for entry in std::fs::read_dir(&dir).expect("dir").flatten() {
+            let file = std::fs::File::options()
+                .write(true)
+                .open(entry.path())
+                .expect("open");
+            file.set_modified(std::time::SystemTime::now() - CACHE_TTL - Duration::from_secs(60))
+                .expect("mtime");
+        }
+        assert!(matches!(client.get_sourced("u"), Err(Error::CacheMiss(_))));
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }

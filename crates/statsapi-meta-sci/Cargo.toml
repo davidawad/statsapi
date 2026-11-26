@@ -11,6 +11,7 @@ workspace = true
 
 [dependencies]
 csv = "1"
+ephemeral-cache = { path = "../ephemeral-cache" }
 reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }

@@ -8,8 +8,8 @@ description = "Reusable client for County Health Rankings & Roadmaps annual data
 
 [dependencies]
 csv = "1"
+ephemeral-cache = { path = "../ephemeral-cache" }
 reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
-sha2 = "0.10"
 
 [lints]
 workspace = true

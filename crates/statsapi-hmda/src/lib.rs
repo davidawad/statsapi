@@ -112,8 +112,7 @@ impl ClientBuilder {
     ///
     /// Returns [`Error::HttpClient`] if the HTTP client cannot be constructed.
     pub fn build(self) -> Result<Client, Error> {
-        let mut http = HttpClient::builder()
-            .user_agent("statsapi-hmda/0.1 (+https://github.com/davidawad/statsapi)");
+        let mut http = HttpClient::builder().user_agent("curl/8.0 (hmda-data public client)");
         if let Some(timeout) = self.timeout {
             http = http.timeout(timeout);
         }

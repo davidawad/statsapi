@@ -18,6 +18,9 @@ pub const API_BASE: &str = "https://api.open.fec.gov/v1/";
 pub const API_KEY_ENV: &str = "API_DATA_GOV_KEY";
 const MAX_RETRIES: u32 = 4;
 const PAGE_SIZE: u16 = 100;
+const MAX_PAGES: u16 = 500;
+/// Pages fetched at once after the first; keeps well under the api.data.gov hourly quota per run.
+const PAGE_CONCURRENCY: usize = 8;
 
 /// Authenticated, blocking client for aggregate schedules and committee metadata.
 pub struct Client {
@@ -160,20 +163,34 @@ impl Client {
     }
 
     fn committees(&self, ids: &[String], cycle: u16) -> Result<BTreeMap<String, Committee>, Error> {
+        let batches: Vec<&[String]> = ids.chunks(100).collect();
         let mut committees = BTreeMap::new();
-        for batch in ids.chunks(100) {
-            if batch.is_empty() {
-                continue;
-            }
-            let mut query: Vec<(&str, String)> = batch
-                .iter()
-                .map(|id| ("committee_id", id.clone()))
-                .collect();
-            query.push(("cycle", cycle.to_string()));
-            query.push(("per_page", PAGE_SIZE.to_string()));
-            for row in self.get_all("committees/", &query)? {
-                if let Some(committee) = row.into_committee() {
-                    committees.insert(committee.committee_id.clone(), committee);
+        for window in batches.chunks(PAGE_CONCURRENCY) {
+            let fetched: Vec<Result<Vec<ScheduleRow>, Error>> = std::thread::scope(|scope| {
+                let handles: Vec<_> = window
+                    .iter()
+                    .map(|batch| {
+                        scope.spawn(move || {
+                            let mut query: Vec<(&str, String)> = batch
+                                .iter()
+                                .map(|id| ("committee_id", id.clone()))
+                                .collect();
+                            query.push(("cycle", cycle.to_string()));
+                            query.push(("per_page", PAGE_SIZE.to_string()));
+                            self.get_all("committees/", &query)
+                        })
+                    })
+                    .collect();
+                handles
+                    .into_iter()
+                    .map(|handle| handle.join().unwrap_or(Err(Error::WorkerPanicked)))
+                    .collect()
+            });
+            for rows in fetched {
+                for row in rows? {
+                    if let Some(committee) = row.into_committee() {
+                        committees.insert(committee.committee_id.clone(), committee);
+                    }
                 }
             }
         }
@@ -181,22 +198,44 @@ impl Client {
     }
 
     fn get_all(&self, endpoint: &str, query: &[(&str, String)]) -> Result<Vec<ScheduleRow>, Error> {
-        let mut rows = Vec::new();
-        for page in 1..=500_u16 {
-            let mut params = query.to_vec();
-            params.push(("api_key", self.api_key.clone()));
-            params.push(("page", page.to_string()));
-            let body = self.get(endpoint, &params)?;
-            let document: ApiResponse = serde_json::from_slice(&body).map_err(Error::Json)?;
-            rows.extend(document.results);
-            let pages = document
-                .pagination
-                .map_or(1, |pagination| pagination.pages.max(1));
-            if page >= pages {
-                return Ok(rows);
+        let first = self.get_page(endpoint, query, 1)?;
+        let pages = first
+            .pagination
+            .map_or(1, |pagination| pagination.pages.max(1));
+        if pages > MAX_PAGES {
+            return Err(Error::PaginationLimit);
+        }
+        let mut rows = first.results;
+        let rest: Vec<u16> = (2..=pages).collect();
+        for window in rest.chunks(PAGE_CONCURRENCY) {
+            let fetched: Vec<Result<ApiResponse, Error>> = std::thread::scope(|scope| {
+                let handles: Vec<_> = window
+                    .iter()
+                    .map(|page| scope.spawn(move || self.get_page(endpoint, query, *page)))
+                    .collect();
+                handles
+                    .into_iter()
+                    .map(|handle| handle.join().unwrap_or(Err(Error::WorkerPanicked)))
+                    .collect()
+            });
+            for page in fetched {
+                rows.extend(page?.results);
             }
         }
-        Err(Error::PaginationLimit)
+        Ok(rows)
+    }
+
+    fn get_page(
+        &self,
+        endpoint: &str,
+        query: &[(&str, String)],
+        page: u16,
+    ) -> Result<ApiResponse, Error> {
+        let mut params = query.to_vec();
+        params.push(("api_key", self.api_key.clone()));
+        params.push(("page", page.to_string()));
+        let body = self.get(endpoint, &params)?;
+        serde_json::from_slice(&body).map_err(Error::Json)
     }
 
     fn get(&self, endpoint: &str, query: &[(&str, String)]) -> Result<Vec<u8>, Error> {
@@ -367,6 +406,8 @@ pub enum Error {
     Cache(std::io::Error),
     /// Pagination exceeded the supported maximum.
     PaginationLimit,
+    /// A page-fetch worker thread panicked.
+    WorkerPanicked,
 }
 
 impl fmt::Display for Error {
@@ -380,6 +421,7 @@ impl fmt::Display for Error {
             Self::Url(error) => write!(formatter, "invalid OpenFEC URL: {error}"),
             Self::Cache(error) => write!(formatter, "OpenFEC cache error: {error}"),
             Self::PaginationLimit => write!(formatter, "OpenFEC pagination exceeded 500 pages"),
+            Self::WorkerPanicked => write!(formatter, "OpenFEC page worker panicked"),
         }
     }
 }
@@ -394,7 +436,8 @@ impl std::error::Error for Error {
             | Self::CacheMiss
             | Self::Url(_)
             | Self::HttpStatus(_)
-            | Self::PaginationLimit => None,
+            | Self::PaginationLimit
+            | Self::WorkerPanicked => None,
         }
     }
 }

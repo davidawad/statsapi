@@ -218,13 +218,13 @@ pub fn laus_series_id(level: &str, geo_id: &str, metric: &str) -> Option<String>
         };
         return Some(format!("LNS{suffix}"));
     }
-    let prefix = match level {
-        "county" => "LAUCN",
-        "cbsa" => "LAUMT",
-        "state" => "LASST",
+    let (prefix, padding) = match level {
+        "county" => ("LAUCN", "00000000"),
+        "cbsa" => ("LAUMT", "00000000"),
+        "state" => ("LAUST", "00000000000"),
         _ => return None,
     };
-    Some(format!("{prefix}{geo_id}00000000{metric}"))
+    Some(format!("{prefix}{geo_id}{padding}{metric}"))
 }
 
 /// Builds the CES series identifier for state or metro nonfarm employment.
@@ -448,6 +448,10 @@ mod tests {
         assert_eq!(
             laus_series_id("county", "99999", "03").as_deref(),
             Some("LAUCN999990000000003")
+        );
+        assert_eq!(
+            laus_series_id("state", "34", "03").as_deref(),
+            Some("LAUST340000000000003")
         );
         assert_eq!(
             ces_series_id("state", "12", "12").expect("state series"),

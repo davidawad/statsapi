@@ -1,8 +1,8 @@
 //! Blocking client for the Urban Institute Education Data Portal.
 
+use ephemeral_cache::{EphemeralCache, Source, Trail};
 use reqwest::blocking::Client as HttpClient;
 use serde_json::Value;
-use sha2::{Digest, Sha256};
 use std::{hash::BuildHasher, path::PathBuf, thread, time::Duration};
 
 /// Portal API root.
@@ -21,15 +21,25 @@ pub fn endpoint(path: &str, query: &[(&str, &str)]) -> String {
     }
 }
 
-/// Client configuration. Caching is disabled unless `cache_dir` is supplied.
+/// Live portal responses stay in the last-resort cache for one hour.
+const LIVE_TTL: Duration = Duration::from_secs(3600);
+/// Byte cap for the last-resort response cache, evicted oldest-first.
+const CACHE_CAP_BYTES: u64 = 64 * 1024 * 1024;
+
+/// Client configuration. The last-resort cache is disabled unless `cache_dir`
+/// is supplied; live responses are always tried first.
 #[derive(Debug, Clone, Default)]
 pub struct Options {
-    /// Optional caller-owned response cache directory.
+    /// Optional caller-owned ephemeral cache directory (1 h TTL, 64 MiB cap).
     pub cache_dir: Option<PathBuf>,
-    /// Fail on a cache miss instead of making an HTTP request.
+    /// Answer only from the cache instead of making an HTTP request.
     pub offline: bool,
+    /// Records whether each answer came from the API or the cache.
+    pub trail: Trail,
     /// Number of retries after the initial request.
     pub max_retries: u32,
+    /// Per-request timeout; 45 seconds when unset.
+    pub timeout: Option<Duration>,
 }
 
 /// Errors returned while requesting or decoding portal data.
@@ -81,7 +91,7 @@ impl Client {
                 "statsapi-urban-education/",
                 env!("CARGO_PKG_VERSION")
             ))
-            .timeout(Duration::from_secs(45))
+            .timeout(options.timeout.unwrap_or(Duration::from_secs(45)))
             .build()?;
         Ok(Self { http, options })
     }
@@ -119,19 +129,21 @@ impl Client {
     }
 
     fn fetch(&self, url: &str) -> Result<Value, Error> {
-        let cache_path = self.options.cache_dir.as_ref().map(|root| {
-            let digest = Sha256::digest(url.as_bytes());
-            root.join(format!("{digest:x}"))
-        });
-        if let Some(path) = &cache_path {
-            if let Ok(body) = std::fs::read(path) {
-                return Ok(serde_json::from_slice(&body)?);
-            }
-        }
-        if self.options.offline {
-            return Err(Error::CacheMiss(url.to_owned()));
-        }
+        let cache = self
+            .options
+            .cache_dir
+            .as_ref()
+            .map(|root| EphemeralCache::new(root, LIVE_TTL, CACHE_CAP_BYTES));
+        let (body, source) = match &cache {
+            Some(cache) => cache.answer(url, self.options.offline, || self.live(url))?,
+            None if self.options.offline => return Err(Error::CacheMiss(url.to_owned())),
+            None => (self.live(url)?, Source::Api),
+        };
+        self.options.trail.note(source);
+        Ok(serde_json::from_slice(&body)?)
+    }
 
+    fn live(&self, url: &str) -> Result<Vec<u8>, Error> {
         let mut attempt = 0;
         loop {
             let result = self.http.get(url).send().and_then(|response| {
@@ -143,15 +155,7 @@ impl Client {
                 }
             });
             match result {
-                Ok(body) => {
-                    if let Some(path) = &cache_path {
-                        std::fs::create_dir_all(path.parent().unwrap_or(path.as_path()))?;
-                        let temp = path.with_extension(format!("tmp.{}", std::process::id()));
-                        std::fs::write(&temp, &body)?;
-                        std::fs::rename(temp, path)?;
-                    }
-                    return Ok(serde_json::from_slice(&body)?);
-                }
+                Ok(body) => return Ok(body),
                 Err(error) => {
                     let retryable = error.is_timeout()
                         || error.is_connect()
@@ -241,6 +245,47 @@ mod tests {
         .expect("page decodes");
         assert_eq!(rows.len(), 1);
         assert_eq!(rows[0]["exp_total"], 123_456.0);
+    }
+
+    #[tokio::test]
+    async fn live_answer_is_preferred_and_cache_serves_only_when_it_fails() {
+        let dir = std::env::temp_dir().join(format!("urban-cache-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(fixture("finance_page.json")))
+            .up_to_n_times(1)
+            .mount(&server)
+            .await;
+        Mock::given(method("GET"))
+            .respond_with(ResponseTemplate::new(503))
+            .mount(&server)
+            .await;
+        let url = format!("{}/api/v1/schools/ccd/finance/2024/", server.uri());
+        let ask = {
+            let (url, dir) = (url.clone(), dir.clone());
+            move || {
+                let trail = Trail::new();
+                let rows = Client::with_options(Options {
+                    cache_dir: Some(dir.clone()),
+                    trail: trail.clone(),
+                    ..Options::default()
+                })
+                .expect("client builds")
+                .rows(&url);
+                (rows, trail.answered())
+            }
+        };
+        let (rows, path) = tokio::task::spawn_blocking(ask.clone())
+            .await
+            .expect("runs");
+        assert_eq!((rows.expect("live").len(), path), (1, Some(Source::Api)));
+        let (rows, path) = tokio::task::spawn_blocking(ask).await.expect("runs");
+        assert_eq!(
+            (rows.expect("cached").len(), path),
+            (1, Some(Source::Cache))
+        );
+        let _ = std::fs::remove_dir_all(dir);
     }
 
     #[test]

@@ -1,18 +1,25 @@
 //! Blocking access to Stanford Education Data Archive CSV releases.
 //!
+//! The release CSVs are sorted by geography id, so one geography is read with
+//! HTTP range requests (a bisection, then a short stream of its rows); a server
+//! that ignores `Range` gets the whole file streamed and filtered while it
+//! downloads. Nothing is written to disk and no archive is kept.
+//!
 //! ```no_run
 //! use statsapi_seda::{Client, Dataset, Level};
 //!
 //! # fn main() -> Result<(), statsapi_seda::Error> {
-//! let client = Client::new()?.with_cache_dir("./seda-cache");
+//! let client = Client::new()?;
 //! let county = client.fetch(Level::County, Dataset::Achievement, "06037")?;
 //! println!("{} rows from {}", county.rows.len(), county.source_url);
 //! # Ok(()) }
 //! ```
 
+mod ranged;
+
+use ephemeral_cache::{Source, Trail};
 use rand::Rng;
-use sha2::{Digest, Sha256};
-use std::path::{Path, PathBuf};
+use std::io::Read;
 use std::thread;
 use std::time::Duration;
 
@@ -81,24 +88,22 @@ pub enum Error {
     /// The requested file did not contain the expected identifier column.
     #[error("source file has no {0} column")]
     MissingIdColumn(&'static str),
-    /// Cache read or write failed.
-    #[error("cache: {0}")]
-    Cache(#[from] std::io::Error),
-    /// No cached copy exists while the client is in offline mode.
-    #[error("offline cache miss")]
-    OfflineCacheMiss,
+    /// Reading the response stream failed.
+    #[error("stream: {0}")]
+    Stream(#[from] std::io::Error),
 }
 
-/// Blocking SEDA client with optional caller-owned cache storage.
+/// Blocking SEDA client that streams and filters; it never persists anything.
 #[derive(Clone, Debug)]
 pub struct Client {
     http: reqwest::blocking::Client,
-    cache_dir: Option<PathBuf>,
-    offline: bool,
+    trail: Trail,
+    /// Replaces the Stanford release base URLs (tests).
+    base: Option<String>,
 }
 
 impl Client {
-    /// Create a client with a 280-second request timeout and no cache.
+    /// Create a client with a 280-second request timeout.
     ///
     /// # Errors
     ///
@@ -110,92 +115,71 @@ impl Client {
             .build()?;
         Ok(Self {
             http,
-            cache_dir: None,
-            offline: false,
+            trail: Trail::new(),
+            base: None,
         })
     }
 
-    /// Store filtered source rows under this caller-supplied directory.
+    /// Serve both releases from `base` instead of Stanford (for a local test server).
     #[must_use]
-    pub fn with_cache_dir(mut self, path: impl AsRef<Path>) -> Self {
-        self.cache_dir = Some(path.as_ref().to_path_buf());
+    pub fn with_release_base(mut self, base: impl Into<String>) -> Self {
+        self.base = Some(base.into());
         self
     }
 
-    /// Disable network access; `fetch` then succeeds only for cached files.
+    /// The access paths this client has answered with (always `stream`).
     #[must_use]
-    pub fn offline_only(mut self) -> Self {
-        self.offline = true;
-        self
+    pub fn trail(&self) -> Trail {
+        self.trail.clone()
     }
 
-    /// Download (or read cached) rows for one geography.
+    /// Stream one release CSV and keep only the rows for one geography.
     ///
     /// # Errors
     ///
     /// Returns an error if the request fails, the response is not a valid CSV,
-    /// the requested identifier column is absent, or cache I/O fails.
+    /// or the requested identifier column is absent.
     pub fn fetch(&self, level: Level, dataset: Dataset, code: &str) -> Result<Table, Error> {
-        let (source_url, vintage) = source(level, dataset);
-        let cache_path = self.cache_dir.as_ref().map(|root| {
-            let key = Sha256::digest(format!("{source_url}:{code}").as_bytes());
-            let hex = key.iter().fold(String::with_capacity(64), |mut out, byte| {
-                use std::fmt::Write as _;
-                let _ = write!(out, "{byte:02x}");
-                out
-            });
-            root.join(format!("{hex}.csv"))
-        });
-        if let Some(path) = &cache_path {
-            if path.exists() {
-                return decode(&std::fs::read(path)?, level, code, source_url, vintage);
-            }
-        }
-
-        if self.offline {
-            return Err(Error::OfflineCacheMiss);
-        }
-        let bytes = self.request(&source_url)?;
-        let table = decode(&bytes, level, code, source_url, vintage)?;
-        if let Some(path) = cache_path {
-            std::fs::create_dir_all(path.parent().unwrap_or(Path::new(".")))?;
-            let mut writer = csv::WriterBuilder::new()
-                .has_headers(false)
-                .from_writer(Vec::new());
-            writer.write_record(&table.headers)?;
-            for row in &table.rows {
-                writer.write_record(row)?;
-            }
-            let bytes = writer
-                .into_inner()
-                .map_err(|error| Error::Cache(error.into_error()))?;
-            let tmp = path.with_extension(format!("tmp.{}", std::process::id()));
-            std::fs::write(&tmp, bytes)?;
-            std::fs::rename(tmp, path)?;
-        }
-        Ok(table)
-    }
-
-    fn request(&self, url: &str) -> Result<Vec<u8>, Error> {
+        let (source_url, vintage) = source(level, dataset, self.base.as_deref());
+        // The files are sorted by id: read just this geography's rows with range
+        // requests, and stream the whole file only if the server cannot do that.
         for attempt in 0..MAX_ATTEMPTS {
-            match self.http.get(url).send() {
-                Ok(response) if response.status().is_success() => match response.bytes() {
-                    Ok(bytes) => return Ok(bytes.to_vec()),
-                    Err(_) if attempt + 1 < MAX_ATTEMPTS => retry_sleep(attempt),
-                    Err(error) => return Err(Error::HttpClient(error)),
-                },
+            match ranged::fetch(&self.http, &source_url, level.id_column(), code, vintage) {
+                Ok(Some(table)) => {
+                    self.trail.note(Source::Stream);
+                    return Ok(table);
+                }
+                Ok(None) => break,
+                Err(Error::HttpClient(_) | Error::Stream(_) | Error::Csv(_))
+                    if attempt + 1 < MAX_ATTEMPTS =>
+                {
+                    retry_sleep(attempt);
+                }
+                Err(error) => return Err(error),
+            }
+        }
+        for attempt in 0..MAX_ATTEMPTS {
+            let last = attempt + 1 == MAX_ATTEMPTS;
+            match self.http.get(&source_url).send() {
+                Ok(response) if response.status().is_success() => {
+                    match decode(response, level, code, source_url.clone(), vintage) {
+                        Ok(table) => {
+                            self.trail.note(Source::Stream);
+                            return Ok(table);
+                        }
+                        Err(Error::Stream(_) | Error::Csv(_)) if !last => retry_sleep(attempt),
+                        Err(error) => return Err(error),
+                    }
+                }
                 Ok(response)
                     if (response.status().as_u16() == 429
                         || response.status().is_server_error())
-                        && attempt + 1 < MAX_ATTEMPTS =>
+                        && !last =>
                 {
                     retry_sleep(attempt);
                 }
                 Ok(response) => return Err(Error::HttpStatus(response.status())),
-                Err(error) if attempt + 1 < MAX_ATTEMPTS => {
-                    let _ = error;
-                    retry_sleep(attempt);
-                }
+                Err(_) if !last => retry_sleep(attempt),
                 Err(error) => return Err(Error::HttpClient(error)),
             }
         }
@@ -209,36 +193,43 @@ fn retry_sleep(attempt: usize) {
     thread::sleep(Duration::from_millis(delay));
 }
 
-fn source(level: Level, dataset: Dataset) -> (String, &'static str) {
+fn source(level: Level, dataset: Dataset, base: Option<&str>) -> (String, &'static str) {
     let suffix = if dataset == Dataset::Growth {
         "gcs"
     } else {
         "cs"
     };
+    let root = |release: &'static str| base.unwrap_or(release).to_owned();
     match level {
         Level::District => (
-            format!("{RELEASE_2024}seda_admindist_annualsub_{suffix}_2024.1.csv"),
+            format!(
+                "{}seda_admindist_annualsub_{suffix}_2024.1.csv",
+                root(RELEASE_2024)
+            ),
             "SEDA 2024.1",
         ),
         Level::State => (
-            format!("{RELEASE_2024}seda_state_annualsub_{suffix}_2024.1.csv"),
+            format!(
+                "{}seda_state_annualsub_{suffix}_2024.1.csv",
+                root(RELEASE_2024)
+            ),
             "SEDA 2024.1",
         ),
         Level::County => (
-            format!("{RELEASE_6}seda_county_poolsub_{suffix}_6.0.csv"),
+            format!("{}seda_county_poolsub_{suffix}_6.0.csv", root(RELEASE_6)),
             "SEDA 6.0",
         ),
     }
 }
 
 fn decode(
-    bytes: &[u8],
+    source: impl Read,
     level: Level,
     code: &str,
     source_url: String,
     vintage: &'static str,
 ) -> Result<Table, Error> {
-    let mut reader = csv::ReaderBuilder::new().from_reader(bytes);
+    let mut reader = csv::ReaderBuilder::new().from_reader(source);
     let headers = reader.headers()?.clone();
     let id_index = headers
         .iter()
@@ -267,7 +258,7 @@ mod tests {
     fn decodes_only_matching_county_rows_from_synthetic_layout() {
         let csv = b"sedacounty,sedacountyname,subcat,subgroup,cs_mn_avg_mth_ol,cs_mn_avg_rla_ol\n00001,Example County,all,all,0.2,0.4\n00002,Other County,all,all,0.3,0.5\n";
         let table = decode(
-            csv,
+            csv.as_slice(),
             Level::County,
             "00001",
             "fixture://county-cs.csv".to_owned(),
@@ -281,7 +272,7 @@ mod tests {
     #[test]
     fn reports_missing_geography_column() {
         let error = decode(
-            b"id,value\n1,2\n",
+            b"id,value\n1,2\n".as_slice(),
             Level::County,
             "1",
             String::new(),
@@ -304,11 +295,34 @@ mod tests {
                 1,
             ),
         ] {
-            let (url, vintage) = source(Level::County, dataset);
+            let (url, vintage) = source(Level::County, dataset, None);
             let table = decode(fixture, Level::County, "00001", url, vintage)
                 .expect("synthetic SEDA layout parses");
             assert_eq!(table.rows.len(), expected_rows);
             assert!(table.rows.iter().all(|row| row.get(0) == Some("00001")));
         }
+    }
+
+    #[test]
+    fn decodes_a_response_delivered_in_small_chunks() {
+        struct Trickle<'a>(&'a [u8]);
+        impl Read for Trickle<'_> {
+            fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+                let n = self.0.len().min(buf.len()).min(7);
+                buf[..n].copy_from_slice(&self.0[..n]);
+                self.0 = &self.0[n..];
+                Ok(n)
+            }
+        }
+        let csv = include_bytes!("../tests/fixtures/county-cs.csv");
+        let table = decode(
+            Trickle(csv),
+            Level::County,
+            "00001",
+            String::new(),
+            "synthetic",
+        )
+        .expect("chunked stream decodes");
+        assert_eq!(table.rows.len(), 6);
     }
 }

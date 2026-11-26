@@ -1,13 +1,18 @@
 //! Blocking client for World Bank country metadata and indicator observations.
 
+use ephemeral_cache::EphemeralCache;
+pub use ephemeral_cache::Source;
 use reqwest::StatusCode;
 use serde_json::Value;
-use sha2::{Digest, Sha256};
 use std::path::PathBuf;
 use std::time::Duration;
 
 const BASE: &str = "https://api.worldbank.org/v2";
 const MAX_ATTEMPTS: u32 = 4;
+/// Cached responses older than this are never served (live responses: hours).
+pub const CACHE_TTL: Duration = Duration::from_hours(6);
+/// The cache directory is pruned oldest-first to at most this many bytes.
+pub const CACHE_CAP_BYTES: u64 = 8 * 1024 * 1024;
 
 /// Errors returned while requesting or decoding World Bank API responses.
 #[derive(Debug)]
@@ -63,7 +68,7 @@ pub struct Region {
 #[derive(Debug)]
 pub struct Client {
     http: reqwest::blocking::Client,
-    cache_dir: Option<PathBuf>,
+    cache: Option<EphemeralCache>,
     offline: bool,
 }
 
@@ -80,7 +85,7 @@ impl Client {
             .map_err(Error::Http)?;
         Ok(Self {
             http,
-            cache_dir,
+            cache: cache_dir.map(|dir| EphemeralCache::new(dir, CACHE_TTL, CACHE_CAP_BYTES)),
             offline: false,
         })
     }
@@ -97,9 +102,18 @@ impl Client {
     /// # Errors
     /// Returns an error for transport, response, or missing region failures.
     pub fn country_region(&self, country: &str) -> Result<Region, Error> {
+        self.country_region_sourced(country)
+            .map(|(region, _)| region)
+    }
+
+    /// Like [`Self::country_region`], also reporting the access path used.
+    ///
+    /// # Errors
+    /// Returns an error for transport, response, or missing region failures.
+    pub fn country_region_sourced(&self, country: &str) -> Result<(Region, Source), Error> {
         let url = format!("{BASE}/country/{country}?format=json");
-        let response = self.get_json(&url)?;
-        parse_region(&response)
+        let (response, source) = self.get_json(&url)?;
+        Ok((parse_region(&response)?, source))
     }
 
     /// Builds the endpoint URL used for an indicator request.
@@ -126,6 +140,20 @@ impl Client {
         indicator: &str,
         source: Option<&str>,
     ) -> Result<Value, Error> {
+        self.indicator_sourced(geography, indicator, source)
+            .map(|(value, _)| value)
+    }
+
+    /// Like [`Self::indicator`], also reporting the access path used.
+    ///
+    /// # Errors
+    /// Returns an error for transport or invalid JSON responses.
+    pub fn indicator_sourced(
+        &self,
+        geography: &str,
+        indicator: &str,
+        source: Option<&str>,
+    ) -> Result<(Value, Source), Error> {
         let url = Self::indicator_url(geography, indicator, source);
         self.get_json(&url)
     }
@@ -140,33 +168,29 @@ impl Client {
             .find(|row| !row.get("value").is_none_or(Value::is_null))
     }
 
-    fn get_json(&self, url: &str) -> Result<Value, Error> {
-        let bytes = self.fetch(url)?;
-        serde_json::from_slice(&bytes).map_err(Error::Json)
+    fn get_json(&self, url: &str) -> Result<(Value, Source), Error> {
+        let (bytes, source) = self.fetch(url)?;
+        Ok((serde_json::from_slice(&bytes).map_err(Error::Json)?, source))
     }
 
-    fn fetch(&self, url: &str) -> Result<Vec<u8>, Error> {
-        if let Some(cache_dir) = &self.cache_dir {
-            let path = cache_dir.join(cache_key(url));
-            match std::fs::read(&path) {
-                Ok(body) => return Ok(body),
-                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-                Err(error) => return Err(Error::Io(error)),
-            }
-            if self.offline {
-                return Err(Error::OfflineCacheMiss(url.to_string()));
-            }
-            let body = self.request_with_retry(url)?;
-            std::fs::create_dir_all(cache_dir).map_err(Error::Io)?;
-            let temp = path.with_extension(format!("tmp.{}", std::process::id()));
-            std::fs::write(&temp, &body).map_err(Error::Io)?;
-            std::fs::rename(&temp, &path).map_err(Error::Io)?;
-            return Ok(body);
-        }
+    /// Live API first; the ephemeral cache answers only when the API fails
+    /// (or the client is offline).
+    fn fetch(&self, url: &str) -> Result<(Vec<u8>, Source), Error> {
+        let cached = || self.cache.as_ref().and_then(|cache| cache.get(url));
         if self.offline {
-            return Err(Error::OfflineCacheMiss(url.to_string()));
+            return cached()
+                .map(|body| (body, Source::Cache))
+                .ok_or_else(|| Error::OfflineCacheMiss(url.to_string()));
         }
-        self.request_with_retry(url)
+        match self.request_with_retry(url) {
+            Ok(body) => {
+                if let Some(cache) = &self.cache {
+                    cache.put(url, &body).map_err(Error::Io)?;
+                }
+                Ok((body, Source::Api))
+            }
+            Err(error) => cached().map(|body| (body, Source::Cache)).ok_or(error),
+        }
     }
 
     fn request_with_retry(&self, url: &str) -> Result<Vec<u8>, Error> {
@@ -221,18 +245,52 @@ fn parse_region(response: &Value) -> Result<Region, Error> {
     })
 }
 
-fn cache_key(url: &str) -> String {
-    Sha256::digest(url.as_bytes())
-        .iter()
-        .fold(String::with_capacity(64), |mut digest, byte| {
-            let _ = std::fmt::Write::write_fmt(&mut digest, format_args!("{byte:02x}"));
-            digest
-        })
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn seeded_client(name: &str, age: Duration) -> (Client, String) {
+        let dir = std::env::temp_dir().join(format!("wb-cache-{name}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let url = Client::indicator_url("USA", "SP.POP.TOTL", None);
+        EphemeralCache::new(&dir, CACHE_TTL, CACHE_CAP_BYTES)
+            .put(&url, br#"[{},[{"value":1,"date":"2024"}]]"#)
+            .expect("seed");
+        for entry in std::fs::read_dir(&dir).expect("dir").flatten() {
+            let file = std::fs::File::options()
+                .write(true)
+                .open(entry.path())
+                .expect("open");
+            file.set_modified(std::time::SystemTime::now() - age)
+                .expect("mtime");
+        }
+        (
+            Client::new(Some(dir)).expect("client").with_offline(true),
+            url,
+        )
+    }
+
+    #[test]
+    fn offline_fresh_entry_is_labeled_cache() {
+        let (client, _) = seeded_client("fresh", Duration::from_secs(60));
+        let (payload, source) = client
+            .indicator_sourced("USA", "SP.POP.TOTL", None)
+            .expect("cached");
+        assert_eq!(source, Source::Cache);
+        assert_eq!(
+            Client::latest_observation(&payload).expect("row")["value"],
+            1
+        );
+    }
+
+    #[test]
+    fn offline_expired_entry_is_a_miss() {
+        let (client, _) = seeded_client("expired", CACHE_TTL + Duration::from_secs(60));
+        assert!(matches!(
+            client.indicator_sourced("USA", "SP.POP.TOTL", None),
+            Err(Error::OfflineCacheMiss(_))
+        ));
+    }
 
     #[test]
     fn decodes_country_region_from_synthetic_upstream_layout() {

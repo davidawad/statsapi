@@ -91,9 +91,17 @@ impl Client {
     ///
     /// Returns an error if the HTTP client cannot be initialized.
     pub fn with_cache_dir(cache_dir: Option<&Path>) -> Result<Self, Error> {
+        Self::with_cache_and_timeout(cache_dir, Duration::from_secs(10))
+    }
+
+    /// Creates a client with an optional caller-owned cache and request timeout.
+    pub fn with_cache_and_timeout(
+        cache_dir: Option<&Path>,
+        timeout: Duration,
+    ) -> Result<Self, Error> {
         let http = reqwest::blocking::Client::builder()
             .user_agent(concat!("statsapi-gdelt/", env!("CARGO_PKG_VERSION")))
-            .timeout(Duration::from_secs(40))
+            .timeout(timeout)
             .build()
             .map_err(Error::Http)?;
         Ok(Self {
@@ -160,6 +168,15 @@ impl Client {
         decode_timeline(&payload)
     }
 
+    /// Fetches a JSON DOC response through the same paced, bounded client.
+    ///
+    /// This is used for DOC modes such as `artlist` whose response shape is
+    /// owned by the caller rather than a timeline.
+    pub fn fetch_json(&self, url: &str) -> Result<Value, Error> {
+        let body = self.fetch(url)?;
+        serde_json::from_slice(&body).map_err(Error::Json)
+    }
+
     fn fetch(&self, url: &str) -> Result<Vec<u8>, Error> {
         if let Some(path) = self.cache_path(url) {
             if let Ok(body) = std::fs::read(&path) {
@@ -203,6 +220,7 @@ impl Client {
                     self.write_cache(url, &body)?;
                     return Ok(body);
                 }
+                Err(error) if error.is_timeout() => return Err(Error::Http(error)),
                 Err(error) if attempt + 1 < MAX_ATTEMPTS => last = Some(Error::Http(error)),
                 Err(error) => return Err(Error::Http(error)),
             }

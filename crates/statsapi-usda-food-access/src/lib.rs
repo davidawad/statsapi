@@ -1,8 +1,9 @@
 //! Reusable access and decoding for USDA ERS food access and FNS SNAP files.
 
 use calamine::{open_workbook_auto_from_rs, Data, Reader};
+use ephemeral_cache::EphemeralCache;
+pub use ephemeral_cache::Source;
 use reqwest::blocking::Client as HttpClient;
-use sha2::{Digest, Sha256};
 use std::fmt;
 use std::io::{Cursor, Read};
 use std::path::PathBuf;
@@ -53,13 +54,16 @@ pub struct Observation {
     pub vintage: String,
     /// The direct URL of the file used to decode this value.
     pub source_url: String,
+    /// Path that answered: `stream` (archive decoded in memory, nothing
+    /// persisted) or `cache` (a fresh cached extract, never the archive).
+    pub source: Source,
 }
 
 /// Blocking client for USDA ERS and FNS public data files.
 #[derive(Clone)]
 pub struct Client {
     http: HttpClient,
-    cache_dir: Option<PathBuf>,
+    cache: Option<EphemeralCache>,
     offline: bool,
 }
 
@@ -67,7 +71,7 @@ impl fmt::Debug for Client {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("Client")
-            .field("cache_dir", &self.cache_dir)
+            .field("cache", &self.cache)
             .field("offline", &self.offline)
             .finish_non_exhaustive()
     }
@@ -88,7 +92,7 @@ impl Client {
             .map_err(|error| Error(error.to_string()))?;
         Ok(Self {
             http,
-            cache_dir,
+            cache: cache_dir.map(EphemeralCache::bulk),
             offline: std::env::var("USDA_FOOD_ACCESS_OFFLINE").as_deref() == Ok("1"),
         })
     }
@@ -108,18 +112,30 @@ impl Client {
         self
     }
 
-    /// Downloads and decodes an ERS Atlas tract field from the 2019 LRAM archive.
+    /// Downloads an ERS Atlas tract field from the 2019 LRAM archive.
+    ///
+    /// The archive is decoded in memory and dropped; only a client given a
+    /// cache directory keeps the extracted value (7-day TTL), never the archive.
     ///
     /// # Errors
     /// Returns an error for transport, HTTP, malformed files, missing tracts, or missing values.
     pub fn atlas_value(&self, tract: &str, field: &str) -> Result<Observation, Error> {
-        let bytes = self.fetch(ERS_ATLAS_URL)?;
-        let (value, vintage) = decode_atlas(&bytes, tract, field)?;
-        Ok(Observation {
-            value,
-            vintage,
-            source_url: ERS_ATLAS_URL.into(),
+        self.extract(ERS_ATLAS_URL, &format!("atlas|{tract}|{field}"), |bytes| {
+            decode_atlas(bytes, tract, field)
         })
+    }
+
+    /// Decodes an ERS Atlas archive already in memory.
+    ///
+    /// # Errors
+    /// Returns an error for malformed files, missing tracts, or missing values.
+    pub fn decode_atlas_value(
+        bytes: &[u8],
+        tract: &str,
+        field: &str,
+    ) -> Result<Observation, Error> {
+        let (value, vintage) = decode_atlas(bytes, tract, field)?;
+        Ok(observation(value, vintage, ERS_ATLAS_URL, Source::Stream))
     }
 
     /// Downloads and sums the FNS July 2025 SNAP project-area workbook for a county.
@@ -129,13 +145,24 @@ impl Client {
     /// # Errors
     /// Returns an error for transport, HTTP, malformed files, or counties without reported values.
     pub fn county_value(&self, county: &str, field: usize) -> Result<Observation, Error> {
-        let bytes = self.fetch(FNS_COUNTY_URL)?;
-        let (value, vintage) = decode_county(&bytes, county, field)?;
-        Ok(Observation {
-            value,
-            vintage,
-            source_url: FNS_COUNTY_URL.into(),
-        })
+        self.extract(
+            FNS_COUNTY_URL,
+            &format!("county|{county}|{field}"),
+            |bytes| decode_county(bytes, county, field),
+        )
+    }
+
+    /// Decodes an FNS county archive already in memory.
+    ///
+    /// # Errors
+    /// Returns an error for malformed files or counties without reported values.
+    pub fn decode_county_value(
+        bytes: &[u8],
+        county: &str,
+        field: usize,
+    ) -> Result<Observation, Error> {
+        let (value, vintage) = decode_county(bytes, county, field)?;
+        Ok(observation(value, vintage, FNS_COUNTY_URL, Source::Stream))
     }
 
     /// Downloads and decodes the latest monthly FNS state workbook value.
@@ -145,51 +172,65 @@ impl Client {
     /// # Errors
     /// Returns an error for an unknown measure/state, transport, HTTP, or malformed workbook.
     pub fn state_value(&self, measure: &str, state_abbr: &str) -> Result<Observation, Error> {
-        let url = match measure {
-            "persons" => FNS_PERSONS_URL,
-            "households" => FNS_HOUSEHOLDS_URL,
-            _ => return Err(Error("measure must be persons or households".into())),
-        };
-        let bytes = self.fetch(url)?;
-        let (value, vintage) = decode_state(&bytes, state_abbr)?;
-        Ok(Observation {
-            value,
-            vintage,
-            source_url: url.into(),
+        let url = state_url(measure)?;
+        self.extract(url, &format!("state|{measure}|{state_abbr}"), |bytes| {
+            decode_state(bytes, state_abbr)
         })
     }
 
-    fn fetch(&self, url: &str) -> Result<Vec<u8>, Error> {
-        let cache_path = self.cache_dir.as_ref().map(|directory| {
-            directory.join(format!("{}.body", hex(&Sha256::digest(url.as_bytes()))))
+    /// Decodes an FNS state workbook already in memory.
+    ///
+    /// # Errors
+    /// Returns an error for an unknown measure/state or malformed workbook.
+    pub fn decode_state_value(
+        measure: &str,
+        bytes: &[u8],
+        state_abbr: &str,
+    ) -> Result<Observation, Error> {
+        let url = state_url(measure)?;
+        let (value, vintage) = decode_state(bytes, state_abbr)?;
+        Ok(observation(value, vintage, url, Source::Stream))
+    }
+
+    /// Serves a fresh cached extract, else streams the file and decodes it in
+    /// memory. Only the small extract is stored, never the downloaded archive.
+    fn extract(
+        &self,
+        url: &str,
+        key: &str,
+        decode: impl FnOnce(&[u8]) -> Result<(f64, String), Error>,
+    ) -> Result<Observation, Error> {
+        let cache_key = format!("{url}#{key}");
+        let cached = self.cache.as_ref().and_then(|cache| {
+            let text = String::from_utf8(cache.get(&cache_key)?).ok()?;
+            let (value, vintage) = text.split_once('\t')?;
+            Some((value.parse::<f64>().ok()?, vintage.to_owned()))
         });
-        if let Some(path) = &cache_path {
-            if let Ok(bytes) = std::fs::read(path) {
-                return Ok(bytes);
-            }
+        if let Some((value, vintage)) = cached {
+            return Ok(observation(value, vintage, url, Source::Cache));
         }
         if self.offline {
             return Err(Error("offline cache miss".into()));
         }
+        let bytes = self.fetch(url)?;
+        let (value, vintage) = decode(&bytes)?;
+        drop(bytes);
+        if let Some(cache) = &self.cache {
+            // A failed cache write must not fail an answer already in hand.
+            let _ = cache.put(&cache_key, format!("{value}\t{vintage}").as_bytes());
+        }
+        Ok(observation(value, vintage, url, Source::Stream))
+    }
 
+    fn fetch(&self, url: &str) -> Result<Vec<u8>, Error> {
         let mut delay = Duration::from_millis(250);
         for attempt in 0..=RETRY_LIMIT {
             match self.http.get(url).send() {
                 Ok(response) if response.status().is_success() => {
-                    let bytes = response
+                    return response
                         .bytes()
-                        .map_err(|error| Error(error.to_string()))?
-                        .to_vec();
-                    if let Some(path) = cache_path {
-                        if let Some(parent) = path.parent() {
-                            let _ = std::fs::create_dir_all(parent);
-                        }
-                        let temporary = path.with_extension(format!("tmp.{}", std::process::id()));
-                        if std::fs::write(&temporary, &bytes).is_ok() {
-                            let _ = std::fs::rename(temporary, path);
-                        }
-                    }
-                    return Ok(bytes);
+                        .map(|bytes| bytes.to_vec())
+                        .map_err(|error| Error(error.to_string()));
                 }
                 Ok(response) => {
                     let status = response.status();
@@ -213,6 +254,23 @@ impl Client {
             delay = (delay * 2).min(Duration::from_secs(4));
         }
         Err(Error("USDA request retry limit reached".into()))
+    }
+}
+
+fn observation(value: f64, vintage: String, url: &str, source: Source) -> Observation {
+    Observation {
+        value,
+        vintage,
+        source_url: url.into(),
+        source,
+    }
+}
+
+fn state_url(measure: &str) -> Result<&'static str, Error> {
+    match measure {
+        "persons" => Ok(FNS_PERSONS_URL),
+        "households" => Ok(FNS_HOUSEHOLDS_URL),
+        _ => Err(Error("measure must be persons or households".into())),
     }
 }
 
@@ -415,15 +473,4 @@ fn decode_county(bytes: &[u8], county: &str, field: usize) -> Result<(f64, Strin
             "county {county} not reported by FNS in July 2025"
         )))
     }
-}
-
-fn hex(bytes: &[u8]) -> String {
-    bytes.iter().fold(
-        String::with_capacity(bytes.len() * 2),
-        |mut output, byte| {
-            use std::fmt::Write as _;
-            let _ = write!(output, "{byte:02x}");
-            output
-        },
-    )
 }

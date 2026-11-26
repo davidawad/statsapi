@@ -1,13 +1,16 @@
 //! Blocking client for U.S. IRS Statistics of Income public CSV datasets.
 //!
-//! The client downloads and decodes the ZIP income and county migration files.
-//! Supply an optional cache directory with [`Client::with_cache_dir`].
+//! IRS publishes these only as bulk CSV files (no query API), so the client
+//! streams a file, keeps the rows of one place in memory and discards the rest:
+//! the bulk file is never written to disk ([`AnswerPath::Stream`]). The small
+//! per-place extract is kept in an [`EphemeralCache`] (7-day TTL, 8 MiB cap,
+//! oldest evicted first) that answers only when the stream fails
+//! ([`AnswerPath::Cache`]). Supply its directory with [`Client::with_cache_dir`].
 
 use csv::StringRecord;
-use sha2::{Digest, Sha256};
-use std::collections::BTreeMap;
-use std::fs;
-use std::path::{Path, PathBuf};
+use ephemeral_cache::{EphemeralCache, Policy, MAX_EXTRACT_TTL};
+use std::collections::{BTreeMap, HashMap};
+use std::io::Read;
 use std::thread;
 use std::time::Duration;
 use thiserror::Error;
@@ -18,6 +21,14 @@ pub const ZIP_URL: &str = "https://www.irs.gov/pub/irs-soi/23zpallagi.csv";
 pub const COUNTY_IN_URL: &str = "https://www.irs.gov/pub/irs-soi/countyinflow2324.csv";
 /// Current IRS SOI county outflow dataset.
 pub const COUNTY_OUT_URL: &str = "https://www.irs.gov/pub/irs-soi/countyoutflow2324.csv";
+
+pub use ephemeral_cache::AnswerPath;
+
+/// Time to live and size cap of the per-place extract cache.
+pub const CACHE_POLICY: Policy = Policy {
+    ttl: MAX_EXTRACT_TTL,
+    cap_bytes: 8 * 1024 * 1024,
+};
 
 /// Client errors from fetching, caching, or decoding IRS data.
 #[derive(Debug, Error)]
@@ -39,80 +50,85 @@ pub enum Error {
 
 /// Reusable blocking IRS SOI data client.
 ///
-/// An in-memory copy of each dataset is kept for the lifetime of this client.
-/// A supplied cache directory persists downloaded CSV files between clients.
+/// Extracts are memoized in memory for the lifetime of the client. A supplied
+/// cache directory holds them between clients as the last-resort fallback.
 #[derive(Debug)]
 pub struct Client {
-    cache_dir: Option<PathBuf>,
+    cache: Option<EphemeralCache>,
     offline: bool,
-    zip_rows: Option<Vec<StringRecord>>,
-    migration_rows: Option<(Vec<StringRecord>, Vec<StringRecord>)>,
+    extracts: HashMap<String, (Vec<StringRecord>, AnswerPath)>,
 }
 
 impl Client {
-    /// Creates a client without a persistent disk cache.
+    /// Creates a client without a disk cache.
     #[must_use]
-    pub const fn new() -> Self {
+    pub fn new() -> Self {
         Self {
-            cache_dir: None,
+            cache: None,
             offline: false,
-            zip_rows: None,
-            migration_rows: None,
+            extracts: HashMap::new(),
         }
     }
 
-    /// Creates a client that stores downloads under the caller-supplied directory.
+    /// Creates a client whose per-place extracts are cached under the directory.
     #[must_use]
-    pub fn with_cache_dir(path: impl Into<PathBuf>) -> Self {
+    pub fn with_cache_dir(path: impl Into<std::path::PathBuf>) -> Self {
         Self {
-            cache_dir: Some(path.into()),
-            offline: false,
-            zip_rows: None,
-            migration_rows: None,
+            cache: Some(EphemeralCache::with_policy(path, CACHE_POLICY)),
+            ..Self::new()
         }
     }
 
-    /// Prevents network access; requested files must already exist in the cache.
+    /// Prevents network access; only a fresh cached extract can answer.
     #[must_use]
     pub fn offline(mut self) -> Self {
         self.offline = true;
         self
     }
 
-    /// Returns a ZIP income metric for a five-digit ZIP code.
+    /// Returns a ZIP income metric for a five-digit ZIP code, with the path
+    /// that answered.
     ///
     /// # Errors
     ///
-    /// Returns an error if the IRS download, optional disk cache, or CSV decoding fails.
-    pub fn zip_metric(&mut self, zip: &str, metric: &str) -> Result<Option<f64>, Error> {
-        if self.zip_rows.is_none() {
-            self.zip_rows = Some(self.load_csv(ZIP_URL, "zip")?);
-        }
-        zip_value(self.zip_rows.as_deref().unwrap_or_default(), zip, metric)
+    /// Returns an error if the stream and the cache both fail, or the CSV is invalid.
+    pub fn zip_metric(
+        &mut self,
+        zip: &str,
+        metric: &str,
+    ) -> Result<Option<(f64, AnswerPath)>, Error> {
+        let (rows, path) = self.extract(&format!("zip:{zip}"), ZIP_URL, &|_, row| {
+            row.get(2) == Some(zip)
+        })?;
+        Ok(zip_value(&rows, zip, metric)?.map(|value| (value, path)))
     }
 
-    /// Returns an inflow, outflow, or net migration metric for a county or state.
+    /// Returns an inflow, outflow, or net migration metric for a county or
+    /// state, with the path that answered.
     ///
     /// # Errors
     ///
-    /// Returns an error if either IRS download, optional disk cache, or CSV decoding fails.
+    /// Returns an error if either stream and the cache both fail, or the CSV is invalid.
     pub fn migration_metric(
         &mut self,
         level: &str,
         geo_id: &str,
         metric: &str,
-    ) -> Result<Option<f64>, Error> {
-        if self.migration_rows.is_none() {
-            self.migration_rows = Some((
-                self.load_csv(COUNTY_IN_URL, "migration-in")?,
-                self.load_csv(COUNTY_OUT_URL, "migration-out")?,
-            ));
-        }
-        let (inflow, outflow) = self
-            .migration_rows
-            .as_ref()
-            .ok_or_else(|| Error::Csv("migration datasets were not loaded".to_owned()))?;
-        let (incoming, outgoing) = migration_values(inflow, outflow, level, geo_id)?;
+    ) -> Result<Option<(f64, AnswerPath)>, Error> {
+        let key = format!("{level}:{geo_id}");
+        let (inflow, in_path) = self.extract(&format!("in:{key}"), COUNTY_IN_URL, &|h, row| {
+            migration_row(h, row, true, level, geo_id)
+        })?;
+        let (outflow, out_path) =
+            self.extract(&format!("out:{key}"), COUNTY_OUT_URL, &|h, row| {
+                migration_row(h, row, false, level, geo_id)
+            })?;
+        let path = if in_path == AnswerPath::Cache || out_path == AnswerPath::Cache {
+            AnswerPath::Cache
+        } else {
+            AnswerPath::Stream
+        };
+        let (incoming, outgoing) = migration_values(&inflow, &outflow, level, geo_id)?;
         let value = match metric {
             "in_migration_returns" => incoming.0,
             "out_migration_returns" => outgoing.0,
@@ -122,39 +138,33 @@ impl Client {
             "net_migration_agi" => incoming.1 - outgoing.1,
             _ => return Ok(None),
         };
-        Ok(Some(value))
+        Ok(Some((value, path)))
     }
 
-    fn load_csv(&self, url: &str, family: &str) -> Result<Vec<StringRecord>, Error> {
-        let path = self
-            .cache_dir
-            .as_deref()
-            .map(|dir| cache_path(dir, url, family));
-        let bytes = if let Some(path) = path.as_ref().filter(|path| path.exists()) {
-            fs::read(path)
-                .map_err(|error| Error::Cache(format!("reading {}: {error}", path.display())))?
-        } else {
-            if self.offline {
-                return Err(Error::Offline(format!("cache miss for {url}")));
+    /// Header plus the rows `keep` accepts, from the stream or else the cache.
+    fn extract(
+        &mut self,
+        key: &str,
+        url: &str,
+        keep: &dyn Fn(&StringRecord, &StringRecord) -> bool,
+    ) -> Result<(Vec<StringRecord>, AnswerPath), Error> {
+        if let Some(hit) = self.extracts.get(key) {
+            return Ok(hit.clone());
+        }
+        let offline = self.offline;
+        let live = || {
+            if offline {
+                return Err(Error::Offline(format!("not streaming {url}")));
             }
-            let bytes = fetch_with_retry(url)?;
-            if let Some(path) = path {
-                if let Some(parent) = path.parent() {
-                    fs::create_dir_all(parent).map_err(|error| {
-                        Error::Cache(format!("creating {}: {error}", parent.display()))
-                    })?;
-                }
-                let temp = path.with_extension(format!("tmp-{}", std::process::id()));
-                fs::write(&temp, &bytes).map_err(|error| {
-                    Error::Cache(format!("writing {}: {error}", temp.display()))
-                })?;
-                fs::rename(&temp, &path).map_err(|error| {
-                    Error::Cache(format!("installing {}: {error}", path.display()))
-                })?;
-            }
-            bytes
+            stream_extract(url, keep)
         };
-        parse_rows(&bytes, url)
+        let (bytes, path) = match &self.cache {
+            Some(cache) => cache.resolve(key, AnswerPath::Stream, live)?,
+            None => (live()?, AnswerPath::Stream),
+        };
+        let rows = parse_rows(&bytes, url)?;
+        self.extracts.insert(key.to_owned(), (rows.clone(), path));
+        Ok((rows, path))
     }
 }
 
@@ -164,20 +174,28 @@ impl Default for Client {
     }
 }
 
-fn fetch_with_retry(url: &str) -> Result<Vec<u8>, Error> {
+/// Streams `url` and returns the CSV of its header plus the rows `keep`
+/// accepts. Nothing is written to disk; transient failures are retried.
+fn stream_extract(
+    url: &str,
+    keep: &dyn Fn(&StringRecord, &StringRecord) -> bool,
+) -> Result<Vec<u8>, Error> {
     let client = reqwest::blocking::Client::builder()
         .user_agent("statsapi-irs-soi/0.1 (public data client)")
+        .timeout(Duration::from_secs(600))
         .build()
         .map_err(|error| Error::Request(error.to_string()))?;
     let mut last_error = String::new();
     for attempt in 0..4 {
-        let result = client
+        let response = client
             .get(url)
             .send()
-            .and_then(reqwest::blocking::Response::error_for_status)
-            .and_then(reqwest::blocking::Response::bytes);
-        match result {
-            Ok(bytes) => return Ok(bytes.to_vec()),
+            .and_then(reqwest::blocking::Response::error_for_status);
+        match response {
+            Ok(response) => match filter_rows(response, keep, url) {
+                Err(Error::Request(message)) => last_error = message,
+                done => return done,
+            },
             Err(error) => {
                 let retryable = error.is_timeout()
                     || error.is_connect()
@@ -186,22 +204,76 @@ fn fetch_with_retry(url: &str) -> Result<Vec<u8>, Error> {
                         .status()
                         .is_some_and(|status| status.as_u16() == 429 || status.is_server_error());
                 last_error = error.to_string();
-                if !retryable || attempt == 3 {
+                if !retryable {
                     break;
                 }
-                let base_ms = 200_u64.saturating_mul(1_u64 << attempt);
-                thread::sleep(Duration::from_millis(
-                    base_ms + u64::from(fastrand::u8(..40)),
-                ));
             }
+        }
+        if attempt < 3 {
+            let base_ms = 200_u64.saturating_mul(1_u64 << attempt);
+            thread::sleep(Duration::from_millis(
+                base_ms + u64::from(fastrand::u8(..40)),
+            ));
         }
     }
     Err(Error::Request(format!("fetching {url}: {last_error}")))
 }
 
-fn cache_path(root: &Path, url: &str, family: &str) -> PathBuf {
-    let key = format!("{}-{}", family, hex(&Sha256::digest(url.as_bytes())));
-    root.join(&key[..2]).join(format!("{key}.csv"))
+/// Reads CSV from `source` row by row, keeping the header and accepted rows.
+/// A read failure is [`Error::Request`] (retryable); bad CSV is [`Error::Csv`].
+fn filter_rows(
+    source: impl Read,
+    keep: &dyn Fn(&StringRecord, &StringRecord) -> bool,
+    url: &str,
+) -> Result<Vec<u8>, Error> {
+    let mut reader = csv::ReaderBuilder::new().flexible(true).from_reader(source);
+    let headers = reader
+        .headers()
+        .map_err(|error| Error::Request(format!("reading header {url}: {error}")))?
+        .clone();
+    let mut writer = csv::Writer::from_writer(Vec::new());
+    let csv_error = |error: csv::Error| Error::Csv(format!("writing extract of {url}: {error}"));
+    writer.write_record(&headers).map_err(csv_error)?;
+    let mut record = StringRecord::new();
+    while reader
+        .read_record(&mut record)
+        .map_err(|error| Error::Request(format!("streaming {url}: {error}")))?
+    {
+        if keep(&headers, &record) {
+            writer.write_record(&record).map_err(csv_error)?;
+        }
+    }
+    writer
+        .into_inner()
+        .map_err(|error| Error::Csv(format!("finishing extract of {url}: {error}")))
+}
+
+/// Whether a migration row is the all-destinations total of the requested place.
+fn migration_row(
+    headers: &StringRecord,
+    row: &StringRecord,
+    incoming: bool,
+    level: &str,
+    id: &str,
+) -> bool {
+    let (state_col, county_col, label_col) = if incoming {
+        ("y2_statefips", "y2_countyfips", "y1_countyname")
+    } else {
+        ("y1_statefips", "y1_countyfips", "y2_countyname")
+    };
+    let at = |name: &str| {
+        headers
+            .iter()
+            .position(|field| field == name)
+            .and_then(|index| row.get(index))
+            .unwrap_or("")
+    };
+    at(label_col).ends_with("Total Migration-US and Foreign")
+        && match level {
+            "county" => format!("{}{}", at(state_col), at(county_col)) == id,
+            "state" => at(state_col) == id,
+            _ => false,
+        }
 }
 
 fn parse_rows(bytes: &[u8], url: &str) -> Result<Vec<StringRecord>, Error> {
@@ -252,16 +324,6 @@ pub fn parse_migration_metric(
         "net_migration_agi" => Some(incoming.1 - outgoing.1),
         _ => None,
     })
-}
-
-fn hex(bytes: &[u8]) -> String {
-    const HEX: &[u8; 16] = b"0123456789abcdef";
-    let mut encoded = String::with_capacity(bytes.len() * 2);
-    for byte in bytes {
-        encoded.push(char::from(HEX[usize::from(byte >> 4)]));
-        encoded.push(char::from(HEX[usize::from(byte & 0x0f)]));
-    }
-    encoded
 }
 
 fn number(record: &StringRecord, headers: &StringRecord, name: &str) -> Result<f64, Error> {
@@ -409,15 +471,69 @@ mod tests {
         );
     }
 
+    fn seeded(dir: &std::path::Path, key: &str, csv: &str) -> Client {
+        EphemeralCache::with_policy(dir, CACHE_POLICY)
+            .put(key, csv.as_bytes())
+            .unwrap();
+        Client::with_cache_dir(dir).offline()
+    }
+
     #[test]
-    fn offline_client_reports_cache_misses_without_network_access() {
-        let cache = std::env::temp_dir().join(format!(
-            "statsapi-irs-soi-offline-test-{}",
-            std::process::id()
-        ));
-        let result = Client::with_cache_dir(cache)
+    fn offline_client_without_a_cached_extract_reports_a_miss() {
+        let dir = tempfile::tempdir().unwrap();
+        let result = Client::with_cache_dir(dir.path())
             .offline()
             .zip_metric("12345", "returns");
         assert!(matches!(result, Err(Error::Offline(_))));
+    }
+
+    #[test]
+    fn a_fresh_cached_extract_answers_when_the_stream_is_unavailable() {
+        let dir = tempfile::tempdir().unwrap();
+        let zip = include_str!("../tests/fixtures/zip.csv");
+        let mut client = seeded(dir.path(), "zip:12345", zip);
+        assert_eq!(
+            client.zip_metric("12345", "returns").unwrap(),
+            Some((15.0, AnswerPath::Cache))
+        );
+    }
+
+    #[test]
+    fn an_expired_cached_extract_is_not_served() {
+        let dir = tempfile::tempdir().unwrap();
+        let zip = include_str!("../tests/fixtures/zip.csv");
+        let mut client = seeded(dir.path(), "zip:12345", zip);
+        for entry in std::fs::read_dir(dir.path()).unwrap() {
+            let file = std::fs::File::options()
+                .write(true)
+                .open(entry.unwrap().path())
+                .unwrap();
+            file.set_modified(
+                std::time::SystemTime::now() - MAX_EXTRACT_TTL - Duration::from_secs(60),
+            )
+            .unwrap();
+        }
+        assert!(matches!(
+            client.zip_metric("12345", "returns"),
+            Err(Error::Offline(_))
+        ));
+    }
+
+    #[test]
+    fn streaming_keeps_only_the_requested_rows_and_stores_no_archive() {
+        let zip = include_str!("../tests/fixtures/zip.csv");
+        let kept = filter_rows(zip.as_bytes(), &|_, row| row.get(2) == Some("12345"), "t").unwrap();
+        let rows = parse_rows(&kept, "t").unwrap();
+        assert!(rows.iter().skip(1).all(|row| row.get(2) == Some("12345")));
+        let dir = tempfile::tempdir().unwrap();
+        let mut client = Client::with_cache_dir(dir.path());
+        client
+            .extracts
+            .insert("zip:12345".into(), (rows, AnswerPath::Stream));
+        assert_eq!(
+            client.zip_metric("12345", "returns").unwrap(),
+            Some((15.0, AnswerPath::Stream))
+        );
+        assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 0);
     }
 }

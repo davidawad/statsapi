@@ -1,8 +1,10 @@
 //! Blocking access and decoding for public Eviction Lab aggregate CSV files.
 
-use sha2::{Digest, Sha256};
+use ephemeral_cache::EphemeralCache;
+pub use ephemeral_cache::Source;
+use std::cell::Cell;
 use std::fmt;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::thread;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -73,10 +75,12 @@ pub struct WeeklyAggregate {
     pub geography_column: String,
 }
 
-/// A blocking Eviction Lab client with optional caller-owned disk caching.
+/// A blocking Eviction Lab client. It streams by default; a caller-owned cache
+/// directory enables the last-resort TTL/size-capped ephemeral cache.
 #[derive(Debug)]
 pub struct Client {
-    cache_dir: Option<PathBuf>,
+    cache: Option<EphemeralCache>,
+    source: Cell<Source>,
     http: reqwest::blocking::Client,
 }
 
@@ -91,7 +95,11 @@ impl Client {
             .timeout(Duration::from_secs(90))
             .build()
             .map_err(Error::Http)?;
-        Ok(Self { cache_dir, http })
+        Ok(Self {
+            cache: cache_dir.map(EphemeralCache::bulk),
+            source: Cell::new(Source::Stream),
+            http,
+        })
     }
 
     /// Downloads or loads a response, retrying transient network and server errors.
@@ -101,26 +109,27 @@ impl Client {
     /// Returns a cache miss under [`NetworkPolicy::CacheOnly`], a cache I/O failure,
     /// or the final HTTP error after retrying transient failures.
     pub fn fetch(&self, url: &str, policy: NetworkPolicy) -> Result<Vec<u8>, Error> {
-        let cache_path = self
-            .cache_dir
-            .as_deref()
-            .map(|directory| directory.join(format!("{}.body", sha256_hex(url.as_bytes()))));
-        if let Some(path) = &cache_path {
-            match std::fs::read(path) {
-                Ok(bytes) => return Ok(bytes),
-                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-                Err(error) => return Err(Error::Io(error)),
-            }
+        if let Some(bytes) = self.cache.as_ref().and_then(|cache| cache.get(url)) {
+            self.source.set(Source::Cache);
+            return Ok(bytes);
         }
         if policy == NetworkPolicy::CacheOnly {
             return Err(Error::CacheMiss);
         }
 
         let bytes = self.fetch_with_retries(url)?;
-        if let Some(path) = cache_path {
-            write_cache(&path, &bytes)?;
+        self.source.set(Source::Stream);
+        if let Some(cache) = &self.cache {
+            cache.put(url, &bytes).map_err(Error::Io)?;
         }
         Ok(bytes)
+    }
+
+    /// Returns the path that answered the last [`Client::fetch`]: `stream`
+    /// (download decoded in memory, nothing persisted) or `cache`.
+    #[must_use]
+    pub fn last_source(&self) -> Source {
+        self.source.get()
     }
 
     /// Decodes the newest matching weekly ETS aggregate from its upstream CSV layout.
@@ -260,26 +269,6 @@ fn retry_delay(attempt: u32) -> Duration {
     Duration::from_millis(base_ms + jitter_ms)
 }
 
-fn sha256_hex(bytes: &[u8]) -> String {
-    Sha256::digest(bytes)
-        .iter()
-        .fold(String::with_capacity(64), |mut output, byte| {
-            use fmt::Write as _;
-            let _ = write!(output, "{byte:02x}");
-            output
-        })
-}
-
-fn write_cache(path: &Path, bytes: &[u8]) -> Result<(), Error> {
-    let Some(parent) = path.parent() else {
-        return Ok(());
-    };
-    std::fs::create_dir_all(parent).map_err(Error::Io)?;
-    let temp = path.with_extension(format!("tmp.{}", std::process::id()));
-    std::fs::write(&temp, bytes).map_err(Error::Io)?;
-    std::fs::rename(temp, path).map_err(Error::Io)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -310,5 +299,29 @@ mod tests {
             ),
             "a cache-only request without a cache directory should report a miss"
         );
+    }
+
+    #[test]
+    fn cached_entry_is_served_as_cache_and_expired_entry_is_not() {
+        let dir = std::env::temp_dir().join(format!("eviction-lab-cache-{}", std::process::id()));
+        let url = "https://example.invalid/ets.csv";
+        ephemeral_cache::EphemeralCache::bulk(&dir)
+            .put(url, b"a,b\n1,2\n")
+            .expect("seed cache");
+        let client = Client::new(Some(dir.clone())).expect("client");
+        let bytes = client
+            .fetch(url, NetworkPolicy::CacheOnly)
+            .expect("fresh entry");
+        assert_eq!(bytes, b"a,b\n1,2\n");
+        assert_eq!(client.last_source(), Source::Cache);
+        let expired = Client {
+            cache: Some(EphemeralCache::new(&dir, Duration::ZERO, 1024)),
+            ..Client::new(None).expect("client")
+        };
+        assert!(matches!(
+            expired.fetch(url, NetworkPolicy::CacheOnly),
+            Err(Error::CacheMiss)
+        ));
+        let _ = std::fs::remove_dir_all(dir);
     }
 }

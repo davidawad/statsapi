@@ -1,14 +1,19 @@
 //! Blocking client for the WHO Global Health Observatory `OData` API.
 
+use ephemeral_cache::EphemeralCache;
+pub use ephemeral_cache::Source;
 use reqwest::blocking::Client as HttpClient;
 use reqwest::Url;
 use serde_json::Value;
-use sha2::{Digest, Sha256};
 use std::fmt;
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+/// Cached responses older than this are never served (live responses: hours).
+pub const CACHE_TTL: Duration = Duration::from_hours(6);
+/// The cache directory is pruned oldest-first to at most this many bytes.
+pub const CACHE_CAP_BYTES: u64 = 8 * 1024 * 1024;
 const BASE: &str = "https://ghoapi.azureedge.net/api";
 const DIMENSIONS: [&str; 6] = ["Dim1", "Dim2", "Dim3", "Dim4", "Dim5", "Dim6"];
 
@@ -140,10 +145,12 @@ impl From<std::io::Error> for ClientError {
     }
 }
 
-/// A blocking WHO GHO client with optional caller-owned response caching.
+/// A blocking WHO GHO client: live API first, with an optional ephemeral
+/// response cache (see [`CACHE_TTL`], [`CACHE_CAP_BYTES`]) as the last resort.
 #[derive(Clone, Debug)]
 pub struct WhoGhoClient {
     http: HttpClient,
+    cache: Option<EphemeralCache>,
     cache_dir: Option<PathBuf>,
     offline: bool,
     max_retries: usize,
@@ -161,15 +168,21 @@ impl WhoGhoClient {
                 .user_agent(concat!("statsapi-who-gho/", env!("CARGO_PKG_VERSION")))
                 .timeout(Duration::from_secs(30))
                 .build()?,
+            cache: None,
             cache_dir: None,
             offline: false,
             max_retries: 3,
         })
     }
 
-    /// Stores responses under a caller-supplied directory.
+    /// Keeps a last-resort ephemeral cache under a caller-supplied directory.
     #[must_use]
     pub fn with_cache_dir(mut self, directory: impl AsRef<Path>) -> Self {
+        self.cache = Some(EphemeralCache::new(
+            directory.as_ref(),
+            CACHE_TTL,
+            CACHE_CAP_BYTES,
+        ));
         self.cache_dir = Some(directory.as_ref().to_path_buf());
         self
     }
@@ -218,24 +231,45 @@ impl WhoGhoClient {
         query: &IndicatorQuery,
         country: &str,
     ) -> Result<(String, Value), ClientError> {
+        self.fetch_sourced(query, country)
+            .map(|(url, value, _)| (url, value))
+    }
+
+    /// Like [`Self::fetch`], also reporting the access path used: the live API
+    /// answers first and the ephemeral cache only when it fails.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for invalid country codes, network failures with no
+    /// usable cache entry, HTTP errors, invalid JSON, or cache failures.
+    pub fn fetch_sourced(
+        &self,
+        query: &IndicatorQuery,
+        country: &str,
+    ) -> Result<(String, Value, Source), ClientError> {
         let url = self.url(query, country)?;
-        let cache_path = self
-            .cache_dir
-            .as_ref()
-            .map(|directory| directory.join(cache_key(&url)));
-        if let Some(path) = cache_path.as_ref() {
-            if let Ok(body) = std::fs::read(path) {
-                return Ok((url, serde_json::from_slice(&body)?));
+        let cached = || self.cache.as_ref().and_then(|cache| cache.get(&url));
+        let (body, source) = if self.offline {
+            let body = cached().ok_or_else(|| {
+                ClientError::CacheMiss(self.cache_dir.clone().unwrap_or_default())
+            })?;
+            (body, Source::Cache)
+        } else {
+            match self.get_with_retry(&url) {
+                Ok(body) => {
+                    if let Some(cache) = &self.cache {
+                        cache.put(&url, &body)?;
+                    }
+                    (body, Source::Api)
+                }
+                Err(error) => match cached() {
+                    Some(body) => (body, Source::Cache),
+                    None => return Err(error),
+                },
             }
-            if self.offline {
-                return Err(ClientError::CacheMiss(path.clone()));
-            }
-        }
-        let body = self.get_with_retry(&url)?;
-        if let Some(path) = cache_path {
-            write_cache(&path, &body)?;
-        }
-        Ok((url, serde_json::from_slice(&body)?))
+        };
+        let value = serde_json::from_slice(&body)?;
+        Ok((url, value, source))
     }
 
     fn get_with_retry(&self, url: &str) -> Result<Vec<u8>, ClientError> {
@@ -334,27 +368,48 @@ fn jittered_delay(attempt: usize) {
     std::thread::sleep(Duration::from_millis(delay));
 }
 
-fn cache_key(url: &str) -> String {
-    Sha256::digest(url.as_bytes())
-        .iter()
-        .fold(String::with_capacity(64), |mut digest, byte| {
-            use std::fmt::Write as _;
-            let _ = write!(digest, "{byte:02x}");
-            digest
-        })
-}
-
-fn write_cache(path: &Path, body: &[u8]) -> Result<(), ClientError> {
-    std::fs::create_dir_all(path.parent().unwrap_or_else(|| Path::new(".")))?;
-    let temp = path.with_extension(format!("tmp.{}", std::process::id()));
-    std::fs::write(&temp, body)?;
-    std::fs::rename(temp, path)?;
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn seeded(name: &str, age: Duration) -> (WhoGhoClient, IndicatorQuery) {
+        let dir = std::env::temp_dir().join(format!("who-cache-{name}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let query = IndicatorQuery::new("SDGSUICIDE").expect("query");
+        let client = WhoGhoClient::new()
+            .expect("client")
+            .with_cache_dir(&dir)
+            .offline();
+        let url = client.url(&query, "USA").expect("url");
+        EphemeralCache::new(&dir, CACHE_TTL, CACHE_CAP_BYTES)
+            .put(&url, br#"{"value":[]}"#)
+            .expect("seed");
+        for entry in std::fs::read_dir(&dir).expect("dir").flatten() {
+            let file = std::fs::File::options()
+                .write(true)
+                .open(entry.path())
+                .expect("open");
+            file.set_modified(std::time::SystemTime::now() - age)
+                .expect("mtime");
+        }
+        (client, query)
+    }
+
+    #[test]
+    fn offline_fresh_entry_is_labeled_cache() {
+        let (client, query) = seeded("fresh", Duration::from_secs(60));
+        let (_, _, source) = client.fetch_sourced(&query, "USA").expect("cached");
+        assert_eq!(source, Source::Cache);
+    }
+
+    #[test]
+    fn offline_expired_entry_is_a_miss() {
+        let (client, query) = seeded("expired", CACHE_TTL + Duration::from_secs(60));
+        assert!(matches!(
+            client.fetch_sourced(&query, "USA"),
+            Err(ClientError::CacheMiss(_))
+        ));
+    }
 
     #[test]
     fn latest_row_prefers_sex_and_total_for_the_newest_year() {

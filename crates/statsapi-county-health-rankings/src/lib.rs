@@ -1,13 +1,14 @@
 //! Blocking client for County Health Rankings & Roadmaps annual analytic CSV data.
 
+use ephemeral_cache::EphemeralCache;
+pub use ephemeral_cache::Source;
 use reqwest::StatusCode;
-use sha2::{Digest, Sha256};
 use std::fmt;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::thread;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-/// Current published annual analytic CSV used by default.
+/// Current published annual analytic CSV used by the county-health-data adapter.
 pub const ANNUAL_CSV_URL: &str = "https://www.countyhealthrankings.org/sites/default/files/media/document/analytic_data2025_v3.csv";
 
 const MAX_ATTEMPTS: usize = 4;
@@ -43,7 +44,8 @@ pub struct Measure {
     pub ci_high: Option<f64>,
 }
 
-/// Reusable client. A cache is used only when the caller supplies a directory.
+/// Reusable client. It streams by default; the last-resort TTL/size-capped
+/// ephemeral cache is used only when the caller supplies a directory.
 #[derive(Clone, Debug, Default)]
 pub struct Client {
     cache_dir: Option<PathBuf>,
@@ -56,7 +58,7 @@ impl Client {
         Self { cache_dir }
     }
 
-    /// Download the annual CSV, using an optional content-addressed cache.
+    /// Download the annual CSV, using the optional ephemeral cache.
     ///
     /// Set `CHR_DATA_OFFLINE=1` to disable network access and require a cache hit.
     ///
@@ -65,18 +67,20 @@ impl Client {
     /// Returns an error when the request fails, offline data is unavailable, or
     /// the cache cannot be read or written.
     pub fn fetch_annual_csv(&self) -> Result<Vec<u8>, Error> {
-        let Some(cache_dir) = &self.cache_dir else {
-            if std::env::var("CHR_DATA_OFFLINE").as_deref() == Ok("1") {
-                return Err(Error::Request(
-                    "offline mode requires a caller-supplied cache directory".to_owned(),
-                ));
-            }
-            return fetch(ANNUAL_CSV_URL);
-        };
-        let key = sha256_hex(ANNUAL_CSV_URL.as_bytes());
-        let path = cache_dir.join(&key[..2]).join(format!("{key}.body"));
-        if let Ok(bytes) = std::fs::read(&path) {
-            return Ok(bytes);
+        self.fetch_annual_csv_with_source().map(|(bytes, _)| bytes)
+    }
+
+    /// Like [`Client::fetch_annual_csv`], also naming the answering path:
+    /// `stream` (nothing persisted) or `cache` (fresh ephemeral entry).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the request fails, offline data is unavailable, or
+    /// the cache cannot be written.
+    pub fn fetch_annual_csv_with_source(&self) -> Result<(Vec<u8>, Source), Error> {
+        let cache = self.cache_dir.clone().map(EphemeralCache::bulk);
+        if let Some(bytes) = cache.as_ref().and_then(|cache| cache.get(ANNUAL_CSV_URL)) {
+            return Ok((bytes, Source::Cache));
         }
         if std::env::var("CHR_DATA_OFFLINE").as_deref() == Ok("1") {
             return Err(Error::Request(format!(
@@ -84,12 +88,12 @@ impl Client {
             )));
         }
         let bytes = fetch(ANNUAL_CSV_URL)?;
-        let parent = path.parent().unwrap_or_else(|| Path::new("."));
-        std::fs::create_dir_all(parent).map_err(|error| Error::Request(error.to_string()))?;
-        let temporary = path.with_extension(format!("tmp.{}", std::process::id()));
-        std::fs::write(&temporary, &bytes).map_err(|error| Error::Request(error.to_string()))?;
-        std::fs::rename(temporary, path).map_err(|error| Error::Request(error.to_string()))?;
-        Ok(bytes)
+        if let Some(cache) = &cache {
+            cache
+                .put(ANNUAL_CSV_URL, &bytes)
+                .map_err(|error| Error::Request(error.to_string()))?;
+        }
+        Ok((bytes, Source::Stream))
     }
 
     /// Find a county or state row in the upstream-layout CSV.
@@ -204,16 +208,6 @@ fn parse_number(value: &str) -> Option<f64> {
         .parse::<f64>()
         .ok()
         .filter(|number| number.is_finite())
-}
-
-fn sha256_hex(bytes: &[u8]) -> String {
-    Sha256::digest(bytes)
-        .iter()
-        .fold(String::with_capacity(64), |mut output, byte| {
-            use fmt::Write as _;
-            let _ = write!(output, "{byte:02x}");
-            output
-        })
 }
 
 #[cfg(test)]

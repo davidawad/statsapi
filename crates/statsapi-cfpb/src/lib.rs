@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 use std::thread;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-const USER_AGENT: &str = "statsapi-cfpb/0.1 (+https://github.com/davidawad/statsapi)";
+const USER_AGENT: &str = "curl/8.14.1 (cfpb-data/0.1)";
 const MAX_ATTEMPTS: u32 = 4;
 
 /// A reusable blocking client for CFPB complaint and consumer credit trend sources.

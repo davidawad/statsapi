@@ -1,7 +1,7 @@
 use statsapi_worldbank::Client;
 
 #[test]
-#[ignore = "live World Bank API smoke test; run manually"]
+#[ignore = "live World Bank API smoke test; run once in the source pod"]
 fn fetches_a_live_indicator_response() {
     let client = Client::new(None).expect("build World Bank client");
     let response = client

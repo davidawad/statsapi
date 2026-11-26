@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use std::thread;
 use std::time::Duration;
 
-const FMR_BASE: &str = "https://www.huduser.gov/hudapi/public/fmr";
+const FMR_BASE: &str = "https://www.huduser.gov/hudapi/public";
 const USPS_BASE: &str = "https://www.huduser.gov/hudapi/public/usps";
 const CACHE_PREFIX: &str = "statsapi-hud-user-";
 const HEX: &[u8; 16] = b"0123456789abcdef";
@@ -143,7 +143,7 @@ impl HudUserClient {
     /// Fetch and decode a JSON API response from a HUD endpoint path.
     ///
     /// This lower-level method is useful for endpoints not wrapped by a helper.
-    /// Paths are relative to the FMR API base and must not begin with `/`.
+    /// Paths are relative to the HUD API base (`https://www.huduser.gov/hudapi/public`) and must not begin with `/`.
     ///
     /// # Errors
     /// Returns an API, transport, cache, or JSON decoding error.

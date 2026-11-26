@@ -208,7 +208,7 @@ pub fn decode_observation(bytes: &[u8], line_code: &str) -> Result<(f64, String)
         .ok_or(Error::Response("BEA response has no data"))?;
     let row = rows
         .iter()
-        .filter(|row| row["LineCode"].as_str() == Some(line_code))
+        .filter(|row| row_matches_line(row, line_code))
         .max_by_key(|row| {
             row["TimePeriod"]
                 .as_str()
@@ -229,6 +229,15 @@ pub fn decode_observation(bytes: &[u8], line_code: &str) -> Result<(f64, String)
     Ok((value, year))
 }
 
+/// The live API labels a row `Code: "<TABLE>-<line>"`; older payloads carry `LineCode`.
+fn row_matches_line(row: &Value, line_code: &str) -> bool {
+    row["LineCode"].as_str() == Some(line_code)
+        || row["Code"]
+            .as_str()
+            .and_then(|code| code.rsplit_once('-'))
+            .is_some_and(|(_, line)| line == line_code)
+}
+
 fn safe_url(url: &reqwest::Url) -> String {
     let mut clean = url.clone();
     clean.query_pairs_mut().clear();
@@ -247,6 +256,15 @@ fn retryable(status: StatusCode) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn decodes_live_code_labelled_rows() {
+        let bytes = br#"{"BEAAPI":{"Results":{"Data":[{"Code":"CAINC1-3","DataValue":"64380","TimePeriod":"2020"},{"Code":"CAINC1-3","DataValue":"70150","TimePeriod":"2021"},{"Code":"CAINC1-2","DataValue":"9","TimePeriod":"2022"}]}}}"#;
+        assert_eq!(
+            decode_observation(bytes, "3").expect("live shape decodes"),
+            (70150.0, "2021".to_owned())
+        );
+    }
 
     #[test]
     fn decodes_latest_matching_synthetic_fixture() {

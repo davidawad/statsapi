@@ -1,6 +1,6 @@
 # statsapi-wvs-pew
 
-`statsapi-wvs-pew` parses caller-supplied World Values Survey and Pew CSV files without performing network access or retaining survey data.
+`statsapi-wvs-pew` parses caller-supplied World Values Survey and Pew files without performing network access or retaining survey data. Pew SAV and ZSAV files are decoded with [`ambers`](https://crates.io/crates/ambers); CSV and dictionary handling, question listing, and weighted estimates stay in this crate.
 
 ## Install
 
@@ -27,7 +27,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ## Authentication and data access
 
-This crate has no credentials, HTTP client, cache, or filesystem access. Callers obtain files manually through the source portals and pass their bytes to `weighted_wvs` or `pew_aggregate`. WVS downloads require portal registration and acceptance of its conditions of use. Pew dataset downloads use Pew's access process. The ignored smoke tests use `WVS_LOGIN` / `PEW_LOGIN` as presence markers and `WVS_DATA_DIR/wave7.csv` / `PEW_DATA_DIR/aggregates.csv`; without a marker they print `credential_missing` and exit successfully. These environment variables are test conventions, not required by the library.
+This crate has no credentials, HTTP client, or cache. Callers obtain files manually through the source portals. `weighted_wvs` and `pew_aggregate` accept CSV bytes; `PewReader` reads caller-selected dataset and dictionary files from disk, including SAV/ZSAV respondent data. WVS downloads require portal registration and acceptance of its conditions of use. Pew dataset downloads use Pew's access process. The ignored smoke tests use `WVS_LOGIN` / `PEW_LOGIN` as presence markers and `WVS_DATA_DIR/wave7.csv` / `PEW_DATA_DIR/aggregates.csv`; without a marker they print `credential_missing` and exit successfully. These environment variables are test conventions, not required by the library.
 
 ## Files and measures covered
 
@@ -47,3 +47,10 @@ Terms reviewed **2026-11-22**. This client does not automate access to either po
 | Pew Research Center | Unauthorized scraping or automated compilation is prohibited. Dataset access/download is user initiated; this crate makes no automated requests. | Survey data may be distributed only as excerpts, not in full or substantially in full; the license does not cover American Trends Panel datasets. | Cite Pew Research Center and include the required interpretation disclaimer when using data. | No numeric rate limit stated; terms prohibit unreasonable load. This parser has no network traffic. |
 
 Sources: [WVS Wave 7 documentation and conditions of use](https://www.worldvaluessurvey.org/WVSContents.jsp?CMSID=Documentation), [WVS download license](https://www.worldvaluessurvey.org/AJDownloadLicense.jsp), and [Pew Research Center Terms of Use, sections 3 and 13](https://www.pewresearch.org/about/terms-and-conditions/).
+
+## Verification
+
+- Method: offline fixture tests use the upstream CSV column layouts with synthesized values; fixtures contain no upstream survey values. The example compiles against the public API. Ignored live smoke tests read only manually supplied files and report missing credentials without failing when the login marker is absent.
+- Date: 2026-11-22.
+- Pass/fail counts: package tests 6 passed, 0 failed, 2 ignored; ignored live tests 2 passed, 0 failed; clippy and example build passed; standalone check passed.
+- Upstream values included: none.

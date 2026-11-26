@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="716" height="232" font-family="Menlo, Monaco, Courier New, monospace" font-size="18">
+<rect width="716" height="232" rx="12" fill="#1e2127"/>
+<circle cx="28" cy="26" r="7" fill="#ff5f56"/><circle cx="52" cy="26" r="7" fill="#ffbd2e"/><circle cx="76" cy="26" r="7" fill="#27c93f"/>
+<text x="28" y="66" fill="#7f848e" xml:space="preserve">$ cargo run -p statsapi-sba --example showcase</text>
+<text x="28" y="92" fill="#d7dae0" xml:space="preserve">SBA synthetic sample</text>
+<text x="28" y="118" fill="#d7dae0" xml:space="preserve">Program  State  ZIP            Amount</text>
+<text x="28" y="144" fill="#d7dae0" xml:space="preserve">7(a)     ZZ     10001        100000.0</text>
+<text x="28" y="170" fill="#d7dae0" xml:space="preserve">7(a)     ZZ     10001        250000.5</text>
+<text x="28" y="196" fill="#d7dae0" xml:space="preserve">PPP      ZZ     10001         10000.5</text>
+<text x="28" y="222" fill="#d7dae0" xml:space="preserve">PPP      ZZ     10001         20000.0</text>
+</svg>

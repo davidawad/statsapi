@@ -60,3 +60,19 @@ automated clients.
 
 The client is provided as software and does not bundle upstream data. WHO terms
 may change and series may carry additional third-party restrictions.
+
+## Verification
+
+DECIDED: expose query construction, HTTP access, retries, cache handling, and
+OData decoding from one no-repository-dependency crate -- this keeps the source
+adapter on the reusable implementation while leaving place resolution and
+adapter records in `who-gho-data`.
+
+Verified 2026-11-22 in the Rust workspace: `cargo fmt -p statsapi-who-gho -p
+who-gho-data --check` passed (2 crates); `cargo clippy --no-deps -p
+statsapi-who-gho -p who-gho-data --all-targets -- -D warnings` passed (2
+crates); `cargo test -p statsapi-who-gho -p who-gho-data` passed (9 passed, 2
+ignored); `cargo test -p statsapi-who-gho -- --ignored` passed (1 live test);
+`cargo build -p statsapi-who-gho --example basic` passed; standalone workspace
+check passed. Offline fixtures use synthetic values only; no upstream values
+were copied into fixtures.

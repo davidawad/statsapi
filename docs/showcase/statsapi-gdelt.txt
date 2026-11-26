@@ -1,0 +1,5 @@
+GDELT DOC timeline synthetic values
+Date                       Volume
+20250101                      5.0
+20250102                      9.0
+20250103                     17.0

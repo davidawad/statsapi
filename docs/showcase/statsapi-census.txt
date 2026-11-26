@@ -1,0 +1,4 @@
+Census ACS synthetic sample
+Measure                         Value
+Population estimate              1200
+Margin of error                    20

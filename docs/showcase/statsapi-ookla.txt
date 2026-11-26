@@ -1,0 +1,6 @@
+Ookla synthetic values
+Metric                  Value
+download_mbps            90.0
+upload_mbps               1.0
+latency_ms               10.0
+tests                     1.0

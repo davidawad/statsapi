@@ -12,7 +12,7 @@ fn query(stattype: &str) -> Query {
 }
 
 #[test]
-#[ignore = "live NAEP Data Service check; run manually"]
+#[ignore = "live NAEP Data Service check; run once per source pod"]
 fn live_mean_scale_score_response() {
     let query = query("MN:MN");
     let response = Client::new().get(&query).expect("NAEP responds");
@@ -27,7 +27,7 @@ fn live_mean_scale_score_response() {
 }
 
 #[test]
-#[ignore = "live NAEP achievement-level Data Service check; run manually"]
+#[ignore = "live NAEP achievement-level Data Service check; run once per source pod"]
 fn live_proficient_response() {
     let query = query("ALC:AP");
     let response = Client::new().get(&query).expect("NAEP responds");

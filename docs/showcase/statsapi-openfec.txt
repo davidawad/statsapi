@@ -1,0 +1,4 @@
+OpenFEC synthetic values
+Metric                Dollars    Count
+Candidate total        123.45        3
+Democratic             123.45        3

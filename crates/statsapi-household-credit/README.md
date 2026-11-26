@@ -11,7 +11,7 @@ statsapi-household-credit = { git = "https://github.com/davidawad/statsapi", pac
 
 ## Usage
 
-`examples/basic.rs` mirrors this usage and compiles with the crate. The caller chooses whether to supply a cache directory; no global cache or credentials are used.
+`examples/basic.rs` mirrors this usage and compiles with the crate. Downloads are held in memory only and never written to disk; no global cache or credentials are used.
 
 ```rust,no_run
 use statsapi_household_credit::{Client, CountyBound, county_debt_to_income_bound};
@@ -25,7 +25,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-For cached downloads, construct with `Client::with_cache_dir("./cache")`. The client requires no key; the included endpoints are public. The library has no repository-local dependencies.
+Callers that want a fallback keep a small extract (never the archive) in the `ephemeral-cache` crate; `household-credit-data` does this with a 7-day TTL. The client requires no key; the included endpoints are public. The library has no repository-local dependencies.
 
 ## Sources and terms
 
@@ -42,4 +42,11 @@ New York Fed site terms do not publish a numeric request limit. Use a reasonable
 - `Client::urban_csv` downloads named CSV files from the Urban Debt in America release. `urban_value` reads a selected geographic row and metric column.
 - `Client::ny_workbook` downloads the New York Fed quarterly XLSX report. `ny_state_value` reads state debt per capita or 90+ day delinquency.
 - `Client::county_archive` downloads the Board of Governors ZIP archive. `county_debt_to_income_bound` reads the latest county low/high interval.
-- `Client::fetch` accepts only URLs from the documented upstream hosts and supports an optional caller-provided cache directory.
+- `Client::fetch` accepts only URLs from the documented upstream hosts and downloads into memory (use `.offline()` to forbid it).
+
+## Verification
+
+- Method: bead-targeted workspace gates plus an isolated standalone `cargo check` of a copied crate with inline workspace lint settings.
+- Date: 2026-11-22.
+- Results: fmt check 1 pass/0 fail; clippy 1/0; workspace tests 7 passed/0 failed/6 ignored; client ignored live tests 3 passed/0 failed; example build 1/0; isolated standalone check 1/0.
+- Fixtures contain synthesized values only; no upstream measurements are stored.

@@ -53,3 +53,4 @@ Terms reviewed 2026-11-22.
 | Rate limits | Respect throttling and `Retry-After`, identify the client, and keep traffic reasonable; numerical limits can change. | The repository does not specify a numeric rate limit; fetch the published files responsibly. |
 
 Sources: [Wikimedia REST API access policy and API etiquette](https://wikimedia.org/api/rest_v1/) (including its linked User-Agent policy); [Wikimedia Foundation API Usage Guidelines](https://foundation.wikimedia.org/wiki/Policy:API_usage_guidelines/en); [Indeed Hiring Lab job postings tracker and license](https://github.com/hiring-lab/job_postings_tracker).
+

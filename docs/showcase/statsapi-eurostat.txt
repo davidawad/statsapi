@@ -1,0 +1,3 @@
+Eurostat synthetic GDP
+Region           Period            Value
+Oberbayern       2023              66600

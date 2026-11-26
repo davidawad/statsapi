@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="716" height="154" font-family="Menlo, Monaco, Courier New, monospace" font-size="18">
+<rect width="716" height="154" rx="12" fill="#1e2127"/>
+<circle cx="28" cy="26" r="7" fill="#ff5f56"/><circle cx="52" cy="26" r="7" fill="#ffbd2e"/><circle cx="76" cy="26" r="7" fill="#27c93f"/>
+<text x="28" y="66" fill="#7f848e" xml:space="preserve">$ cargo run -p statsapi-noaa --example showcase</text>
+<text x="28" y="92" fill="#d7dae0" xml:space="preserve">NOAA synthetic values</text>
+<text x="28" y="118" fill="#d7dae0" xml:space="preserve">County         Event          Property $</text>
+<text x="28" y="144" fill="#d7dae0" xml:space="preserve">MIDDLESEX      Flood                1200</text>
+</svg>

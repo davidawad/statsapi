@@ -1,0 +1,6 @@
+Power Price synthetic values
+Metric                  Value
+ZIP                     08840
+Residential             0.190
+Commercial              0.120
+Industrial              0.080

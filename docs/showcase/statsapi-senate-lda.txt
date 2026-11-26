@@ -1,0 +1,5 @@
+Senate LDA synthetic sample
+Metric              Filings        Value
+Page total                3            -
+Q2 spending               2    165000.50
+Top issue                 2          TAX

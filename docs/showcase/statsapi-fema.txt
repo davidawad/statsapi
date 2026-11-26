@@ -1,0 +1,3 @@
+OpenFEMA synthetic values
+Collection                    ZIP      Records
+NfipClaims                  08840            1

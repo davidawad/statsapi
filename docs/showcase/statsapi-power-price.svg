@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="716" height="232" font-family="Menlo, Monaco, Courier New, monospace" font-size="18">
+<rect width="716" height="232" rx="12" fill="#1e2127"/>
+<circle cx="28" cy="26" r="7" fill="#ff5f56"/><circle cx="52" cy="26" r="7" fill="#ffbd2e"/><circle cx="76" cy="26" r="7" fill="#27c93f"/>
+<text x="28" y="66" fill="#7f848e" xml:space="preserve">$ cargo run -p statsapi-power-price --example showcase</text>
+<text x="28" y="92" fill="#d7dae0" xml:space="preserve">Power Price synthetic values</text>
+<text x="28" y="118" fill="#d7dae0" xml:space="preserve">Metric                  Value</text>
+<text x="28" y="144" fill="#d7dae0" xml:space="preserve">ZIP                     08840</text>
+<text x="28" y="170" fill="#d7dae0" xml:space="preserve">Residential             0.190</text>
+<text x="28" y="196" fill="#d7dae0" xml:space="preserve">Commercial              0.120</text>
+<text x="28" y="222" fill="#d7dae0" xml:space="preserve">Industrial              0.080</text>
+</svg>

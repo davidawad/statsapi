@@ -1,0 +1,3 @@
+IMF DataMapper synthetic sample
+Country            Year     Growth
+USA                2025        2.3

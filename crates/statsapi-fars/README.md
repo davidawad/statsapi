@@ -40,3 +40,4 @@ Terms reviewed 2026-11-22. The upstream is NHTSA, a U.S. federal agency. Sources
 | Redistribution of data? | Yes. NHTSA says site information may be distributed or copied; the FARS dataset README identifies the dataset as public domain. |
 | Attribution required? | No mandatory attribution found in the cited terms. Cite NHTSA / USDOT as the source as good practice. |
 | Rate limits | No numeric limit is stated in the cited terms. The client uses bounded retries for 429 and server errors. |
+

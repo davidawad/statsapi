@@ -49,3 +49,4 @@ Reviewed 2026-11-22: [NAEP Data Service API documentation](https://www.nationsre
 | Redistribution of data | The API page does not state a redistribution license. NAEP is U.S. federal public data; the API page warns against storing its changing results in spreadsheets or databases. |
 | Attribution required? | No attribution requirement is stated on the API documentation page. Credit NAEP / NCES as the source as good practice. |
 | Rate limits | No numeric rate limit is stated. The page warns about timeouts and recommends small requests. |
+

@@ -47,3 +47,4 @@ Terms checked 2026-11-22 against the [FMR and Income Limits API documentation](h
 | Redistribution of data | No special restrictions on USPS crosswalk content are stated. FMR/Income Limits API terms do not state a separate redistribution grant; retain HUD's attribution and do not modify or falsely represent API content. |
 | Attribution required? | Yes. Services using the API should prominently display: “This product uses the HUD User Data API but is not endorsed or certified by HUD User.” |
 | Rate limits | Maximum 60 queries per minute; HUD may block access for attempts to exceed or circumvent limits. |
+

@@ -43,6 +43,8 @@ Public read queries may be anonymous. An application token is passed with `Socra
 
 ## Endpoints and files covered
 
+DECIDED: use SODA resource JSON GET endpoints -- this matches the existing CDC adapter traffic and supports the datasets already in scope.
+
 This client builds SODA 2.x resource endpoints (`https://{domain}/resource/{dataset}.json`), encodes SoQL query parameters, sends blocking HTTPS GET requests using rustls, retries 429, 5xx, and transport failures with bounded jitter, and decodes JSON arrays of records. It supports any Socrata domain and dataset ID supplied by the caller. This release covers resource JSON responses; it does not download bulk export files or implement write APIs.
 
 ## Terms reviewed 2026-11-22
@@ -55,3 +57,4 @@ This client builds SODA 2.x resource endpoints (`https://{domain}/resource/{data
 | Rate limits? | Yes. Anonymous traffic is subject to shared-IP throttling; 429 responses are retried with bounded jitter. Limits may change, and abusive or malicious usage may be throttled. | [Socrata application tokens and throttling](https://dev.socrata.com/docs/app-tokens) |
 
 The CDC portal is a U.S. federal portal. Its [portal catalog](https://data.cdc.gov/) links dataset-level metadata; check each dataset's `license` field because CDC's public-domain status does not automatically apply to every dataset. Terms reviewed 2026-11-22; confirm the dataset's current license and portal terms before reuse.
+

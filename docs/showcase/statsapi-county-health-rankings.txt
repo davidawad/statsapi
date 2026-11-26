@@ -1,0 +1,5 @@
+County Health Rankings synthetic sample
+Measure                         Value
+Premature death               4321.25
+Confidence low                4100.00
+Confidence high               4542.50

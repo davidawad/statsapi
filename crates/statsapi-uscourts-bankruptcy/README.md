@@ -39,5 +39,10 @@ Reviewed 2026-11-22: the [F-5A download listing](https://www.uscourts.gov/data-t
 | Attribution required? | No requirement found in the reviewed F-5A terms; identifying U.S. Courts as the source is recommended. |
 | Rate limits | No numeric rate limit found. Use the client for occasional reporting-period downloads and avoid excessive requests. |
 
+
 ## Decisions
 
+DECIDED: expose parsed `Table` and `County` data with the client -- consumers
+need reusable fetch and decode behavior without adapter-specific place or
+indicator types. The source is keyless, so no credential integration or
+environment variable is needed.

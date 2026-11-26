@@ -1,0 +1,4 @@
+ArcGIS synthetic sample
+Field             Value
+COUNTY            34023
+RISK_SCORE   23.1

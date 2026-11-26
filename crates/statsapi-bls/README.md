@@ -51,3 +51,4 @@ Terms read 2026-11-22. This is a summary of the linked BLS pages, not a replacem
 | Rate limits | BLS may set access/call limits; the terms provide no fixed numeric rate. Respect API responses and do not evade limits. |
 
 Sources: [BLS Copyright Information](https://www.bls.gov/opub/copyright-information.htm) and [BLS Developers Terms of Service](https://www.bls.gov/developers/termsOfService.htm).
+

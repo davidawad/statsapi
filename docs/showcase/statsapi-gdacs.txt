@@ -1,0 +1,4 @@
+GDACS disaster alerts synthetic values
+Event            ID Level    Name                  
+EQ          9000001 orange   Synthetic quake near Examplia
+TC          9000002 red      Synthetic cyclone ZETA

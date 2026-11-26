@@ -57,7 +57,3 @@ Terms reviewed 2026-11-23.
 
 Sources: [Launch Library 2 API docs](https://ll.thespacedevs.com/docs/) and [The Space Devs terms and API throttling notes](https://thespacedevs.com/llapi).
 
-## Verified
-
-- Method: offline tests against a local mock server and synthesized fixtures; one ignored live test.
-- Date: 2026-11-23.

@@ -1,0 +1,5 @@
+Opportunity Insights synthetic values
+Metric                  Value
+ZIP                     98765
+EC score                 .125
+Clustering                 .3

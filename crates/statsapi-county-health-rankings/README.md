@@ -36,3 +36,4 @@ Reviewed 2026-11-22: [CHR&R Terms of Use](https://www.countyhealthrankings.org/t
 | Rate limits | No numeric rate limit is stated. Use modest request frequency; the client caches only when a caller provides a directory. |
 
 This crate redistributes client code, not downloaded data. Use the source data only in ways permitted by the terms and applicable underlying-source restrictions.
+

@@ -1,8 +1,5 @@
 use crate::{NY_COUNTY_URL, NY_URL, URBAN_BASE};
 use reqwest::StatusCode;
-use sha2::{Digest, Sha256};
-use std::io;
-use std::path::{Path, PathBuf};
 use std::thread;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use thiserror::Error;
@@ -14,60 +11,48 @@ pub enum Error {
     /// An HTTP request or response failed.
     #[error("upstream request failed: {0}")]
     Http(#[from] reqwest::Error),
-    /// A cache read or write failed.
-    #[error("cache operation failed: {0}")]
-    Io(#[from] io::Error),
     /// A requested endpoint is not one of the supported upstream resources.
     #[error("unsupported household credit resource")]
     UnsupportedResource,
     /// All retry attempts failed.
     #[error("upstream retries exhausted: {0}")]
     RetriesExhausted(String),
-    /// Offline mode requested a response that was not already cached.
-    #[error("offline cache miss for {0}")]
+    /// Offline mode forbids the download.
+    #[error("offline: not downloading {0}")]
     OfflineCacheMiss(String),
 }
 
-/// Blocking, cache-optional HTTP client for the source files used by this crate.
+/// Blocking HTTP client for the source files used by this crate.
+///
+/// Files are downloaded into memory for the caller to filter and are never
+/// written to disk; keeping a small extract is the caller's job (see the
+/// `ephemeral-cache` crate).
 #[derive(Debug, Clone)]
 pub struct Client {
     http: reqwest::blocking::Client,
-    cache_dir: Option<PathBuf>,
     offline: bool,
 }
 
 impl Client {
-    /// Creates a client without a disk cache.
+    /// Creates a client.
     ///
     /// # Errors
     /// Returns an error if the HTTP client cannot be initialized.
     pub fn new() -> Result<Self, Error> {
-        Self::build(None)
-    }
-
-    /// Creates a client whose downloaded response bodies are cached under `cache_dir`.
-    ///
-    /// # Errors
-    /// Returns an error if the HTTP client cannot be initialized.
-    pub fn with_cache_dir(cache_dir: impl Into<PathBuf>) -> Result<Self, Error> {
-        Self::build(Some(cache_dir.into()))
-    }
-
-    fn build(cache_dir: Option<PathBuf>) -> Result<Self, Error> {
         let http = reqwest::blocking::Client::builder()
             .user_agent(concat!(
                 "statsapi-household-credit/",
                 env!("CARGO_PKG_VERSION")
             ))
+            .timeout(Duration::from_secs(300))
             .build()?;
         Ok(Self {
             http,
-            cache_dir,
             offline: false,
         })
     }
 
-    /// Uses only cached response bodies and returns an error for a cache miss.
+    /// Forbids network access: every download fails with [`Error::OfflineCacheMiss`].
     #[must_use]
     pub fn offline(mut self) -> Self {
         self.offline = true;
@@ -76,20 +61,14 @@ impl Client {
 
     /// Downloads one of the documented Urban, New York Fed, or Federal Reserve source URLs.
     ///
-    /// Cached bodies are returned without a network request. Failures on transport errors,
+    /// The body is held in memory only. Failures on transport errors,
     /// HTTP 429, and HTTP 5xx are retried three times with jittered exponential delays.
     ///
     /// # Errors
-    /// Returns an error for unsupported URLs, exhausted retries, or cache I/O failures.
+    /// Returns an error for unsupported URLs, offline mode, or exhausted retries.
     pub fn fetch(&self, url: &str) -> Result<Vec<u8>, Error> {
         if !supported_url(url) {
             return Err(Error::UnsupportedResource);
-        }
-        let cache_path = self.cache_dir.as_ref().map(|dir| cache_path(dir, url));
-        if let Some(path) = &cache_path {
-            if let Ok(body) = std::fs::read(path) {
-                return Ok(body);
-            }
         }
         if self.offline {
             return Err(Error::OfflineCacheMiss(url.to_owned()));
@@ -99,19 +78,7 @@ impl Client {
         for attempt in 0..4 {
             match self.http.get(url).send() {
                 Ok(response) if response.status().is_success() => match response.bytes() {
-                    Ok(bytes) => {
-                        let body = bytes.to_vec();
-                        if let Some(path) = cache_path {
-                            if let Some(parent) = path.parent() {
-                                std::fs::create_dir_all(parent)?;
-                            }
-                            let temporary =
-                                path.with_extension(format!("tmp.{}", std::process::id()));
-                            std::fs::write(&temporary, &body)?;
-                            std::fs::rename(temporary, path)?;
-                        }
-                        return Ok(body);
-                    }
+                    Ok(bytes) => return Ok(bytes.to_vec()),
                     Err(error) if attempt == 3 => return Err(Error::Http(error)),
                     Err(error) => last_error = Some(error.to_string()),
                 },
@@ -194,13 +161,4 @@ fn retry_delay(attempt: u32) -> Duration {
             .subsec_millis(),
     ) % (base_ms / 2 + 1);
     Duration::from_millis(base_ms + jitter)
-}
-
-fn cache_path(cache_dir: &Path, url: &str) -> PathBuf {
-    let mut key = String::with_capacity(64);
-    for byte in Sha256::digest(url.as_bytes()) {
-        use std::fmt::Write as _;
-        let _ = write!(key, "{byte:02x}");
-    }
-    cache_dir.join(&key[..2]).join(format!("{key}.body"))
 }

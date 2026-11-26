@@ -41,3 +41,4 @@ Terms reviewed 2026-11-22 at the [FFIEC HMDA portal](https://ffiec.cfpb.gov/) an
 | Redistribution of data | The client does not redistribute data. HMDA public disclosures are published by U.S. federal agencies; no restriction on reuse of the public data was stated in the reviewed materials. Respect HMDA's privacy-modified public disclosure rules. |
 | Attribution required? | No attribution requirement was stated in the reviewed API materials. Citing FFIEC/CFPB as the data source is appropriate. |
 | Rate limits | No numeric request limit was stated in the reviewed materials. Use the optional cache and avoid unnecessary requests. |
+

@@ -55,9 +55,6 @@ Reviewed 2026-11-23 at [fhfa.gov/data/hpi/datasets](https://www.fhfa.gov/data/hp
 | Attribution required? | None stated; "Source: FHFA House Price Index" is given as a courtesy. | datasets page |
 | Rate limits | None stated. One download per call, no polling. | datasets page |
 
-## Verified
-
-Fixtures are synthetic in the upstream layouts. Live check 2026-11-23: county 34023 (Middlesex, NJ), HPI 1195.35 for 2025 from `hpi_at_county.xlsx`; `cargo test -p statsapi-fhfa -- --ignored` passes.
 
 ## License
 

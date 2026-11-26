@@ -1,0 +1,4 @@
+CMS geographic variation synthetic sample
+Measure                         Value
+Year                             2024
+ER visits per 1,000            512.25

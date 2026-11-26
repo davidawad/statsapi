@@ -1,0 +1,6 @@
+HMDA mortgage applications synthetic values
+Census tract       Action  Loan amount
+01001020100             1          210
+01001020100             2          125
+01001020100             3      missing
+01001020100             1          310

@@ -95,6 +95,10 @@ impl Client {
     }
 
     /// Creates a client with an optional caller-owned cache and request timeout.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the HTTP client cannot be initialized.
     pub fn with_cache_and_timeout(
         cache_dir: Option<&Path>,
         timeout: Duration,
@@ -172,6 +176,11 @@ impl Client {
     ///
     /// This is used for DOC modes such as `artlist` whose response shape is
     /// owned by the caller rather than a timeline.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the request fails, the response is not successful,
+    /// or the body is not valid JSON.
     pub fn fetch_json(&self, url: &str) -> Result<Value, Error> {
         let body = self.fetch(url)?;
         serde_json::from_slice(&body).map_err(Error::Json)

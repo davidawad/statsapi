@@ -84,6 +84,13 @@ impl Level {
             Self::Red => "red",
         }
     }
+    fn api_name(self) -> &'static str {
+        match self {
+            Self::Green => "Green",
+            Self::Orange => "Orange",
+            Self::Red => "Red",
+        }
+    }
 }
 
 /// One GDACS event episode.
@@ -168,8 +175,24 @@ impl Client {
     /// Builds the event-list URL for orange and red alerts over a date range.
     #[must_use]
     pub fn alerts_url(from: NaiveDate, to: NaiveDate) -> String {
+        Self::alerts_url_with_levels(from, to, &[Level::Orange, Level::Red])
+    }
+    /// Builds the event-list URL for the requested alert levels over a date
+    /// range.
+    #[must_use]
+    pub fn alerts_url_with_levels(from: NaiveDate, to: NaiveDate, levels: &[Level]) -> String {
+        let levels = if levels.is_empty() {
+            vec![Level::Orange, Level::Red]
+        } else {
+            levels.to_vec()
+        };
+        let alert_levels = levels
+            .iter()
+            .map(|level| level.api_name())
+            .collect::<Vec<_>>()
+            .join(";");
         format!(
-            "{BASE}?eventlist=EQ;TC;FL;VO;DR;WF&alertlevel=Orange;Red&fromDate={from}&toDate={to}"
+            "{BASE}?eventlist=EQ;TC;FL;VO;DR;WF&alertlevel={alert_levels}&fromDate={from}&toDate={to}"
         )
     }
     /// Fetches orange and red alerts overlapping `from..=to`.
@@ -178,7 +201,21 @@ impl Client {
     /// Returns an error when the live API and any fresh cache entry both fail,
     /// or the body is not a GDACS feature collection.
     pub fn alerts(&self, from: NaiveDate, to: NaiveDate) -> Result<(Vec<Alert>, Origin), Error> {
-        let url = Self::alerts_url(from, to);
+        self.alerts_with_levels(from, to, &[Level::Orange, Level::Red])
+    }
+    /// Fetches alerts for the requested levels, using the same live-first,
+    /// TTL-bounded cache policy as [`Client::alerts`].
+    ///
+    /// # Errors
+    /// Returns an error when the live API and any fresh cache entry both fail,
+    /// or the body is not a GDACS feature collection.
+    pub fn alerts_with_levels(
+        &self,
+        from: NaiveDate,
+        to: NaiveDate,
+        levels: &[Level],
+    ) -> Result<(Vec<Alert>, Origin), Error> {
+        let url = Self::alerts_url_with_levels(from, to, levels);
         let (bytes, origin) = match self.fetch(&url) {
             Ok(bytes) => {
                 self.store(&url, &bytes);

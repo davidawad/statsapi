@@ -43,6 +43,3 @@ Terms reviewed 2026-11-23 at [IMF Copyright and Usage](https://www.imf.org/en/Ab
 | Attribution required? | Yes: cite the IMF World Economic Outlook database as the source. |
 | Rate limits | None published; the edge may block abusive volume. |
 
-## Verified
-
-`cargo fmt --check`, `cargo clippy --no-deps -D warnings`, `cargo test -p statsapi-imf-datamapper`, and `cargo test -p statsapi-imf-datamapper -- --ignored` on 2026-11-23; fixtures are trimmed real responses (USA, DEU, 2022 onward).

@@ -38,3 +38,4 @@ The client reads `BEA_API_KEY` with `Client::from_env`, or accepts a credential 
 | Rate limits | BEA may impose access, call, or use limits and may block attempts to exceed or circumvent them; no numeric limit is stated in the terms. |
 
 Source: [BEA API Terms of Service](https://apps.bea.gov/API/_pdf/bea_api_tos.pdf), read 2026-11-22. API use is permitted for retrieval and analysis, so this client may be used for its intended purpose; the terms' attribution and usage limits still apply.
+

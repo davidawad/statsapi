@@ -1,0 +1,5 @@
+NOAA NCEI synthetic sample
+Measure               Value Unit              
+Stations                  7 count             
+Daily rows               30 days              
+Normal rows             366 days              

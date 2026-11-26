@@ -54,3 +54,4 @@ Terms read 2026-11-22. This is a summary of the linked U.S. federal source pages
 | Rate limits | The cited download pages publish no numeric rate limit. Use the downloads responsibly; the client retries only transient transport, 429, and server failures with bounded backoff. |
 
 Sources: [USDA Economic Research Service](https://www.ers.usda.gov/), [ERS Food Access Research Atlas downloads](https://www.ers.usda.gov/data-products/food-access-research-atlas/download-the-data), [USDA Food and Nutrition Service](https://www.fns.usda.gov/), and [FNS SNAP data page](https://www.fns.usda.gov/pd/supplemental-nutrition-assistance-program-snap). Both agencies are U.S. federal agencies.
+

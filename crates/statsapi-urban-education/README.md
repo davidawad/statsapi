@@ -19,6 +19,7 @@ use statsapi_urban_education::{Client, Options, API_ROOT};
 let client = Client::with_options(Options {
     cache_dir: Some("./portal-cache".into()),
     offline: false,
+    trail: Default::default(),
     max_retries: 4,
 })?;
 let url = format!("{API_ROOT}/school-districts/ccd/directory/2024/?fips=34&page_size=5");
@@ -32,7 +33,7 @@ The Education Data Portal documentation describes public URL/API requests and do
 
 ## Endpoints covered
 
-This client fetches any documented Portal API endpoint and follows its paginated `results` / `next` layout. Commonly used source families and endpoints:
+This client fetches any documented Portal API endpoint and follows its paginated `results` / `next` layout. `education-data` currently uses these source families and endpoints:
 
 - School and school-district CCD finance, directory, and enrollment.
 - School CRDC chronic absenteeism and AP/IB enrollment.
@@ -51,3 +52,13 @@ Terms checked 2026-11-22 against the [Education Data Portal documentation](https
 | Redistribution of data | Portal data is made available under the [Open Data Commons Attribution License (ODC-By) 1.0](https://opendatacommons.org/licenses/by/1-0/), which permits redistribution subject to its conditions. |
 | Attribution required? | Yes. ODC-By applies; the Portal also provides a recommended citation for research and other published work. |
 | Rate limits | No numeric request-rate limit is stated in the documentation or Data Policy and Terms of Use reviewed. |
+
+## Verification
+
+Fixture values are synthetic; no upstream values are included in fixtures or this verification summary.
+
+### Verified (2026-11-22)
+
+- Method: offline fixture tests, workspace format and clippy gates, package tests, ignored live test against the public keyless API, example build, and isolated standalone `cargo check`.
+- Pass/fail counts: 7 offline/workspace tests passed, 0 failed, 3 ignored; 1 live test passed, 0 failed. Format, clippy, example build, and standalone check passed.
+- Upstream values: none.

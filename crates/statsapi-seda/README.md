@@ -15,7 +15,7 @@ statsapi-seda = { git = "https://github.com/davidawad/statsapi", package = "stat
 use statsapi_seda::{Client, Dataset, Level};
 
 fn main() -> Result<(), statsapi_seda::Error> {
-    let client = Client::new()?.with_cache_dir("./seda-cache");
+    let client = Client::new()?;
     let table = client.fetch(Level::County, Dataset::Achievement, "00001")?;
     println!("{} rows from {}", table.rows.len(), table.source_url);
     Ok(())
@@ -26,7 +26,7 @@ The same call is in [`examples/basic.rs`](examples/basic.rs). The geography code
 
 ## Authentication and access
 
-The supported CSV file URLs do not require an API key. Users must review and accept Stanford's data use agreement before accessing the files. The client does not collect credentials or accept an authentication token. The caller may configure an optional cache directory with `with_cache_dir`; `offline_only` disables network access and uses only that cache.
+The supported CSV file URLs do not require an API key. Users must review and accept Stanford's data use agreement before accessing the files. The client does not collect credentials or accept an authentication token. The release CSVs are streamed and filtered to the requested geography as they download; nothing is persisted (no cache, no archive), and `Client::trail()` reports the `stream` access path.
 
 ## Files covered
 
@@ -49,3 +49,7 @@ Source: [SEDA Get the Data and Data Use Agreement](https://edopportunity.org/tre
 | Rate limits | The agreement states no request rate limit. Use reasonable request rates and comply with any applicable Stanford terms. |
 
 The table summarizes the published agreement; it is not a grant to redistribute SEDA data. No upstream data values are included in this crate's fixtures.
+
+## Verification
+
+Verified on 2026-11-22. Method: workspace `cargo fmt`, clippy, tests, ignored live tests, and example build, plus `cargo check` after copying the crate into an isolated workspace with the workspace lints inlined. The ordinary test run passed 10 tests, failed 0, and ignored 3 live tests; the ignored run passed all 3 live tests, failed 0. Formatting, clippy, example build, and standalone check each passed. Offline fixture checks use synthesized values and a SEDA-compatible county CSV layout; this verification records no upstream values.

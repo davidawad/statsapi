@@ -1,0 +1,3 @@
+Socrata synthetic sample
+Area               Year          Value
+Synthetic tract    2024           41.7

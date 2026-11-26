@@ -64,3 +64,23 @@ and [52 U.S.C. 30111(a)(4)](https://uscode.house.gov/uscode-text?req=granuleid:U
 | Redistribution of data | The API terms permit services to search, display, analyze, retrieve and view data, but do not state a blanket redistribution license. The statute restricts sale or use of report information for solicitation or commercial purposes; individual contributor information is not exposed by this client. |
 | Attribution required? | Yes. API terms say services accessing the API should identify OpenFEC API as the data source; do not imply FEC endorsement. |
 | Rate limits | The API docs list 1,000 calls/hour per API key, up to 100 results/page, and allow requests for 7,200 calls/hour; `DEMO_KEY` is much more limited. Limits may change or be enforced by the FEC. |
+
+## Verification
+
+Verified 2026-11-22 in the repository workspace with the required format,
+clippy, tests, ignored live-test, example-build and isolated-crate checks.
+The isolated check copied the crate to `/tmp`, added a standalone workspace
+with inline workspace lint definitions, and ran `cargo check --offline`.
+Offline fixtures retain the OpenFEC JSON response layout and synthesize every
+value; no upstream values are copied. No upstream values were fetched during
+verification because `API_DATA_GOV_KEY` was unavailable; the ignored live test
+printed `credential_missing: API_DATA_GOV_KEY` and exited successfully.
+
+## Verification results
+
+- `cargo fmt -p statsapi-openfec -p fec-data --check`: pass (0 failures)
+- `cargo clippy --no-deps -p statsapi-openfec -p fec-data --all-targets -- -D warnings`: pass (0 warnings)
+- `cargo test -p statsapi-openfec -p fec-data`: pass (6 passed, 0 failed, 2 ignored)
+- `cargo test -p statsapi-openfec -- --ignored`: pass (1 passed, 0 failed; credential missing, no network request)
+- `cargo build -p statsapi-openfec --example basic`: pass (0 failures)
+- Standalone `cargo check --offline`: pass (0 failures; no repository path dependencies)

@@ -1,0 +1,6 @@
+SEDA synthetic sample
+County   Name               Group       Score
+00001    Example County     all           0.6
+00001    Example County     wht           0.8
+00001    Example County     blk           0.4
+00001    Example County     hsp           0.5

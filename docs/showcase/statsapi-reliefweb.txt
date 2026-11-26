@@ -1,0 +1,4 @@
+ReliefWeb synthetic values
+Status       Type                 Date
+ongoing      Flood        2026-10-24
+past         Drought      2025-03-01

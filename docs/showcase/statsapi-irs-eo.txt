@@ -1,0 +1,3 @@
+IRS exempt organizations synthetic sample
+EIN          Name                     State   
+123456789    Synthetic Organization   NJ      

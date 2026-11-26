@@ -1,0 +1,3 @@
+WHO GHO synthetic values
+Indicator              Year  Value
+SYNTHETIC_RATE         2023   17.1

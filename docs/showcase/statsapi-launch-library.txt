@@ -1,0 +1,4 @@
+Launch Library synthetic sample
+Measure               Value Origin            
+Previous count           42 cache             
+Next launch              31 cache             

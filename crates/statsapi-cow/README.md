@@ -39,7 +39,3 @@ members are limited to 16 MiB and are held in memory only.
 
 See the [COW data sets and terms](https://correlatesofwar.org/data-sets/).
 
-## Verified
-
-- Tests use a synthesized CSV fixture; no upstream data is bundled.
-- The decoder does not write downloaded data to disk.

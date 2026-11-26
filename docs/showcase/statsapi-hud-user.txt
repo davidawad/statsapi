@@ -1,0 +1,5 @@
+HUD USER housing data synthetic values
+Measure                   Value
+Two-bedroom FMR    "1375"
+Median income      77777
+Crosswalk rows                1

@@ -1,0 +1,5 @@
+Census BDS synthetic sample
+Measure                         Value
+Year                             2022
+Job creation rate                15.2
+Establishment entry               9.5

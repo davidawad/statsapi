@@ -1,0 +1,3 @@
+Eviction Lab synthetic weekly aggregate
+Week              Current     Baseline
+2025-02-09           17.0          8.0

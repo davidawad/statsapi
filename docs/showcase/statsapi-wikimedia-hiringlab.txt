@@ -1,0 +1,4 @@
+Wikimedia Hiring Lab synthetic values
+Geography  Latest date  Latest  Prior
+US        2024-04-01    104.0   101.0
+12345     2024-04-01     94.0    91.0

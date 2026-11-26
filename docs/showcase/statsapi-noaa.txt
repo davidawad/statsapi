@@ -1,0 +1,3 @@
+NOAA synthetic values
+County         Event          Property $
+MIDDLESEX      Flood                1200

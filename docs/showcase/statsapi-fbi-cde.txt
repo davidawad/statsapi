@@ -1,0 +1,3 @@
+FBI Crime Data Explorer synthetic values
+Series                               Year    Mean rate
+Example State                        2023         21.0

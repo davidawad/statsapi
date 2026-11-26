@@ -1,0 +1,3 @@
+Meta SCI synthetic sample
+Origin           Friend                Score
+AA               AA                     11.0

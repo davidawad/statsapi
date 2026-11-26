@@ -1,0 +1,4 @@
+IRS Statistics of Income synthetic sample
+Metric                        Value Unit      
+ZIP returns                      15 returns   
+County net migration              4 returns   

@@ -1,0 +1,3 @@
+EPA Air Quality System synthetic data
+Measure          Date              Value
+PM2.5 mean       2025-01-01          8.2

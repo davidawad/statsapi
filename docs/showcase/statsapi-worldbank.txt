@@ -1,0 +1,3 @@
+World Bank synthetic values
+Indicator       Date  Value
+SYN.METRIC      2098  12345

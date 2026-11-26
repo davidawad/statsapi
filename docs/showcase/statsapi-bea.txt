@@ -1,0 +1,3 @@
+BEA synthetic sample
+Line                Value
+3 (2097)            83417

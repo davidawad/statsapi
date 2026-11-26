@@ -49,3 +49,4 @@ Reviewed 2026-11-22: [Dataverse API documentation](https://guides.dataverse.org/
 | Rate limits | No numeric rate limit is stated in the reviewed API or general terms. API terms require reasonable bandwidth and prohibit impairing service; the client retries 429/5xx with bounded delays. |
 
 This client is generic Dataverse API software, not an MIT Election Lab client. It does not grant rights to any dataset, bypass access restrictions, or authorize selling, leasing, sublicensing, or monetizing API access. Free reuse of the client code does not imply Harvard affiliation.
+

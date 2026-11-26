@@ -1,0 +1,5 @@
+OpenSky synthetic values
+Metric                  Value
+Total aircraft              4
+Airborne                    3
+On ground               25.0%

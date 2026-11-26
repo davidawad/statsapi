@@ -1,0 +1,5 @@
+IODA synthetic sample
+Measure               Value       Unit
+Episodes                  1      count
+Current                 8.0     signal
+Baseline               10.5     signal

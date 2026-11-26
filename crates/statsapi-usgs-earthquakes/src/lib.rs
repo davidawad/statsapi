@@ -58,6 +58,8 @@ pub struct Query {
 /// The most recent or strongest event of a query.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Event {
+    /// USGS catalog event identifier.
+    pub id: String,
     pub magnitude: f64,
     /// USGS display title, e.g. `M 4.8 - 2 km SW of Whitehouse Station, New Jersey`.
     pub title: String,
@@ -135,6 +137,35 @@ impl Client {
         Ok((parse_first_event(&json)?, url))
     }
 
+    /// Returns catalog events ordered from newest to oldest.
+    ///
+    /// Malformed features are skipped, as a missing event timestamp must never
+    /// become an invented event date in an adapter response.
+    ///
+    /// # Errors
+    /// Returns an error for HTTP failures or an invalid event collection.
+    pub fn events(
+        &self,
+        query: &Query,
+        end: &str,
+        limit: usize,
+    ) -> Result<(Vec<Event>, String), Error> {
+        let limit = limit.to_string();
+        let url = url(
+            "query",
+            query,
+            end,
+            &[
+                ("format", "geojson"),
+                ("orderby", "time"),
+                ("limit", &limit),
+            ],
+        );
+        let body = self.get(&url)?;
+        let json: Value = serde_json::from_str(&body).map_err(|e| Error::Decode(e.to_string()))?;
+        Ok((parse_events(&json)?, url))
+    }
+
     fn get(&self, url: &str) -> Result<String, Error> {
         for attempt in 0..=MAX_RETRIES {
             match self.http.get(url).send() {
@@ -203,6 +234,7 @@ pub fn parse_first_event(json: &Value) -> Result<Option<Event>, Error> {
     let p = &feature["properties"];
     let missing = |field: &str| Error::Decode(format!("event lacks {field}"));
     Ok(Some(Event {
+        id: feature["id"].as_str().unwrap_or_default().to_owned(),
         magnitude: p["mag"].as_f64().ok_or_else(|| missing("mag"))?,
         title: p["title"]
             .as_str()
@@ -211,6 +243,28 @@ pub fn parse_first_event(json: &Value) -> Result<Option<Event>, Error> {
         time_ms: p["time"].as_i64().ok_or_else(|| missing("time"))?,
         url: p["url"].as_str().unwrap_or_default().to_owned(),
     }))
+}
+
+/// Parses a `GeoJSON` event collection, skipping malformed features.
+///
+/// # Errors
+/// Returns an error when the response lacks a features array.
+pub fn parse_events(json: &Value) -> Result<Vec<Event>, Error> {
+    let features = json["features"]
+        .as_array()
+        .ok_or_else(|| Error::Decode("missing features array".to_owned()))?;
+    Ok(features.iter().filter_map(parse_feature).collect())
+}
+
+fn parse_feature(feature: &Value) -> Option<Event> {
+    let p = &feature["properties"];
+    Some(Event {
+        id: feature["id"].as_str()?.to_owned(),
+        magnitude: p["mag"].as_f64()?,
+        title: p["title"].as_str()?.to_owned(),
+        time_ms: p["time"].as_i64()?,
+        url: p["url"].as_str().unwrap_or_default().to_owned(),
+    })
 }
 
 fn days_from_civil(y: i64, m: i64, d: i64) -> i64 {

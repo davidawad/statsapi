@@ -1,0 +1,5 @@
+FARS synthetic traffic fatalities
+Measure                       Value
+State fatalities                  5
+Alcohol impaired                  3
+Pedestrians                       1

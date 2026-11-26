@@ -1,0 +1,5 @@
+CFPB synthetic sample
+Measure                         Value
+Complaints                         13
+Top product share                61.5%
+State map value                  12.5%

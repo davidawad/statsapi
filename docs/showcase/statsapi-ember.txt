@@ -1,0 +1,3 @@
+Ember synthetic electricity generation
+Source           Period          Share %
+Coal             2026-10-01       14.189

@@ -48,3 +48,4 @@ Terms checked on 2026-11-22 against the [CFPB Consumer Complaint Database page](
 ## Tests
 
 Offline fixtures preserve the upstream JSON and CSV field layout while using wholly synthesized complaint categories, counts, and state codes. The live integration test is ignored by default. CFPB complaint volume is not a statistical sample of consumers' marketplace experiences; interpret counts with the population and coverage caveats on the upstream page.
+

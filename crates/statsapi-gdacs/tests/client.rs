@@ -37,6 +37,16 @@ fn url_requests_orange_and_red_for_the_range() {
 }
 
 #[test]
+fn url_can_request_green_in_addition_to_default_levels() {
+    let url = Client::alerts_url_with_levels(
+        day("2026-01-01"),
+        day("2026-11-23"),
+        &[Level::Orange, Level::Red, Level::Green],
+    );
+    assert!(url.contains("alertlevel=Orange;Red;Green"));
+}
+
+#[test]
 #[ignore = "queries the live GDACS API"]
 fn live_alerts_query() {
     let (alerts, origin) = Client::new()

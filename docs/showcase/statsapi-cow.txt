@@ -1,0 +1,5 @@
+COW synthetic country codes
+Code        Start        End
+2            1816       1918
+20           1816       1918
+31           1816       1918

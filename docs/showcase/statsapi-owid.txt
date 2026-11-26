@@ -1,0 +1,3 @@
+OWID synthetic values
+Country          Year        Value
+USA              2023         79.5

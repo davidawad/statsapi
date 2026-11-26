@@ -48,3 +48,16 @@ Terms were reviewed on **2026-11-22**. The [Opportunity Insights Data Library](h
 | Rate limits | None stated on the OI data page or in the linked data-library listing reviewed. Use a cache and avoid excessive requests. |
 
 Sources: [Opportunity Insights Data Library](https://opportunityinsights.org/data/), [Social Capital II listing and linked license](https://opportunityinsights.org/data/?geographic_level=0&paper_id=1652&topic=0), [Economic Tracker](https://economictracker.org/).
+
+## Verification
+
+Verified **2026-11-22** with offline fixture tests, the ignored live download test, and a standalone build outside the monorepo workspace. Fixture files preserve source CSV headers and use synthesized values throughout; no upstream data values are included.
+
+| Check | Result |
+| --- | --- |
+| `cargo fmt -p statsapi-opportunity-insights -p opportunity-insights-data --check` | Passed |
+| `cargo clippy --no-deps -p statsapi-opportunity-insights -p opportunity-insights-data --all-targets -- -D warnings` | Passed |
+| `cargo test -p statsapi-opportunity-insights -p opportunity-insights-data` | 6 passed, 0 failed, 4 ignored |
+| `cargo test -p statsapi-opportunity-insights -- --ignored` | 1 passed, 0 failed |
+| `cargo build -p statsapi-opportunity-insights --example basic` | Passed |
+| Standalone `cargo check --example basic` with inline workspace lints | Passed |

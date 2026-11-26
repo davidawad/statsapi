@@ -1,0 +1,5 @@
+SDMX synthetic sample
+Format     Period            Value
+Eurostat   2099-02      45.67
+CSV        2099-01      12.34
+JSON       2099-02      56.78

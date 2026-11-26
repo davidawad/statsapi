@@ -1,0 +1,5 @@
+Statistics Canada synthetic sample
+Series           Period                    Value
+Vector 98765     2098-02-01                123.4
+Coordinate       4.1.0.0.0.0.0.0.0.0           - 
+Province SGC     35                            -

@@ -40,7 +40,3 @@ members are limited to 16 MiB and are held in memory only.
 See the [UCDP dataset download center](https://ucdp.uu.se/downloads/) and
 [UCDP API documentation](https://ucdp.uu.se/apidocs/).
 
-## Verified
-
-- Tests use a synthesized CSV fixture; no upstream data is bundled.
-- The decoder does not write downloaded data to disk.

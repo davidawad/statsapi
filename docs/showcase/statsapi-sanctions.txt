@@ -1,0 +1,4 @@
+Sanctions synthetic sample
+List     Entities     People   Recent Program                 
+OFAC            1          2        - IRAN                    
+UN              0          0        0                         

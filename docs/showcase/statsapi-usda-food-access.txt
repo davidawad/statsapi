@@ -1,0 +1,5 @@
+USDA food access synthetic values
+Measure            Vintage          Value
+Atlas lapop1       2019               2468.0
+SNAP persons       February 2099      2222.0
+SNAP households    February 2099       444.0

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="738" height="154" font-family="Menlo, Monaco, Courier New, monospace" font-size="18">
+<rect width="738" height="154" rx="12" fill="#1e2127"/>
+<circle cx="28" cy="26" r="7" fill="#ff5f56"/><circle cx="52" cy="26" r="7" fill="#ffbd2e"/><circle cx="76" cy="26" r="7" fill="#27c93f"/>
+<text x="28" y="66" fill="#7f848e" xml:space="preserve">$ cargo run -p statsapi-usgs-earthquakes --example showcase</text>
+<text x="28" y="92" fill="#d7dae0" xml:space="preserve">USGS earthquakes synthetic values</text>
+<text x="28" y="118" fill="#d7dae0" xml:space="preserve">ID           Date        Mag  Event</text>
+<text x="28" y="144" fill="#d7dae0" xml:space="preserve">us7000ma74   2024-04-05  4.8  M 4.8 - 2024 Tewksbury, New Jers</text>
+</svg>

@@ -1,0 +1,4 @@
+NASA POWER synthetic sample
+Parameter              Days Unit      
+T2M                       2 C         
+PRECTOTCORR               3 mm/day    

@@ -1,0 +1,3 @@
+Governance indices synthetic values
+Index           Country    Score         Rank
+RSF 2026            USA    62.61           64

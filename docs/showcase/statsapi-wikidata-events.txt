@@ -1,0 +1,4 @@
+Wikidata events synthetic values
+Date        Country Type       Fatal  Event
+2030-01-02  SYN     Exercise       2  Harbor drill
+2030-01-05  SYN     Ceremony       -  Market opening

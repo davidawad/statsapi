@@ -1,0 +1,4 @@
+National Archives Catalog synthetic sample
+Measure               Value Unit              
+Records                   1 count             
+Title length             24 characters        

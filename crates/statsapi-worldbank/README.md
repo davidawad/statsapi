@@ -48,3 +48,4 @@ Terms reviewed 2026-11-22 at [World Bank Terms of Use for Datasets](https://www.
 | Rate limits | No numeric rate is stated in the terms reviewed. Reasonable request volume is required; excessive or abusive use may be restricted. |
 
 The terms permit reasonable API use and do not prohibit an independently implemented client for these endpoints. Use the data only under its dataset-specific terms and applicable noncommercial restrictions.
+

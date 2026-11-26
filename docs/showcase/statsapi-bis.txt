@@ -1,0 +1,5 @@
+BIS synthetic sample
+Period                    Gap
+2031-Q1                 -2.50
+2031-Q2                 -3.25
+Newest                  -3.25

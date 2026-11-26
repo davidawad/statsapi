@@ -32,7 +32,7 @@ The client builds requests for GDELT DOC 2.0's `/api/v2/doc/doc` endpoint and su
 
 ## Terms
 
-Terms checked 2026-11-22: [GDELT Terms of Use](https://www.gdeltproject.org/about.html#termsofuse).
+Terms checked 2026-11-22: [GDELT Terms of Use](https://www.gdeltproject.org/about.html#termsofuse); the API's pacing guidance is also documented in the existing `gdelt-data` source notes.
 
 | Question | Answer |
 |---|---|
@@ -40,3 +40,4 @@ Terms checked 2026-11-22: [GDELT Terms of Use](https://www.gdeltproject.org/abou
 | Redistribution of data | Yes. Datasets may be redistributed, rehosted, republished, and mirrored in any form. |
 | Attribution required? | Yes. Cite the GDELT Project and link to https://www.gdeltproject.org/. |
 | Rate limits | Terms publish no numeric rate limit. DOC API guidance asks clients to leave at least five seconds between requests; this client enforces a six-second per-process floor. |
+

@@ -2,7 +2,7 @@
 
 Typed, blocking Rust clients for 26 public statistics sources (BLS, BEA, Census-adjacent federal datasets, World Bank, WHO, SDMX agencies, CDC and other Socrata portals, education, housing, credit, elections and more), so you can pull official numbers without writing a scraper per agency.
 
-![Terminal output of the statsapi-bls showcase example: BLS LAUS and CES series, decoded from the crate's synthetic test fixture](docs/showcase/bls-terminal.png)
+![Terminal output of the statsapi-bls showcase example: BLS LAUS and CES series, decoded from the crate's synthetic test fixture](docs/showcase/statsapi-bls.png)
 
 The image is the output of `cargo run -p statsapi-bls --example showcase`: the example decodes the crate's own synthetic test fixture (the real upstream layout, invented values) through the public API, offline. Reproduce it with `docs/showcase/make-screenshots.sh` (see [docs/showcase.md](docs/showcase.md)).
 
@@ -51,7 +51,6 @@ Build everything: `cargo build --workspace`. The offline tests need no network o
 | `statsapi-fhfa` | Reusable streaming client for FHFA annual house price index files by ZIP, county and tract | [README](crates/statsapi-fhfa/README.md) |
 | `statsapi-gdacs` | Reusable blocking client for the GDACS global disaster alert API | [README](crates/statsapi-gdacs/README.md) |
 | `statsapi-gdelt` | Reusable blocking client for GDELT DOC 2.0 timelines | [README](crates/statsapi-gdelt/README.md) |
-| `statsapi-gleif` | Reusable blocking client for the GLEIF LEI records API v1 | [README](crates/statsapi-gleif/README.md) |
 | `statsapi-governance-indices` | Reusable blocking client for the Transparency International CPI and RSF World Press Freedom Index | [README](crates/statsapi-governance-indices/README.md) |
 | `statsapi-hmda` | Reusable Rust client for the FFIEC HMDA Data Browser CSV API. | [README](crates/statsapi-hmda/README.md) |
 | `statsapi-household-credit` | Reusable client for public household credit data from the NY Fed, Federal Reserve Board, and Urban Institute | [README](crates/statsapi-household-credit/README.md) |
@@ -67,7 +66,6 @@ Build everything: `cargo build --workspace`. The offline tests need no network o
 | `statsapi-nasa-power` | Reusable blocking client for the NASA POWER daily point API | [README](crates/statsapi-nasa-power/README.md) |
 | `statsapi-noaa-cdo` | Reusable blocking client for the NOAA NCEI Access Data Service (GHCN-Daily summaries and 1991-2020 climate normals) | [README](crates/statsapi-noaa-cdo/README.md) |
 | `statsapi-noaa` | Reusable client for NOAA NCEI Storm Events bulk files | [README](crates/statsapi-noaa/README.md) |
-| `statsapi-nws` | Reusable blocking client for the NOAA National Weather Service alerts and forecast API | [README](crates/statsapi-nws/README.md) |
 | `statsapi-ons` | Reusable blocking client for the UK Office for National Statistics API and postcodes.io | [README](crates/statsapi-ons/README.md) |
 | `statsapi-ookla` | Reusable parser and client helpers for Ookla Open Data performance tiles | [README](crates/statsapi-ookla/README.md) |
 | `statsapi-openaq` | Reusable blocking Rust client for the OpenAQ v3 air quality API | [README](crates/statsapi-openaq/README.md) |
@@ -100,6 +98,10 @@ Build everything: `cargo build --workspace`. The offline tests need no network o
 Every crate README has a usage example (mirrored by `examples/basic.rs`), the endpoints or files it covers, how authentication works, and a terms table (automated access, redistribution, attribution, rate limits) with links to the upstream terms as reviewed. Test fixtures keep each upstream's layout but carry synthesized values, except trimmed US federal public-domain samples.
 
 This project is not affiliated with or endorsed by any of the data providers. Using a client does not change a provider's terms: check them before you redistribute data.
+
+## Prior art
+
+Some sources already have maintained Rust clients, and we use them instead of shipping our own: [`gleif-rs`](https://crates.io/crates/gleif-rs) for GLEIF LEI records and [`noaa_weather_client`](https://crates.io/crates/noaa_weather_client) for the National Weather Service API (both reviewed 2026-11-26). Other existing crates were reviewed and not adopted because they are unmaintained or do not cover these endpoints: `reliefweb`, `usgs-earthquake-api`, `opensky-network`, `opensky_api`, `openaq-client`, `socrata-sdk`, `wbi-rs`, `arcgis`, `dataverse`, `bamcensus-acs`.
 
 ## License
 

@@ -1,0 +1,5 @@
+CISA KEV synthetic sample
+Measure                         Value
+Catalog entries                     8
+Added in 30 days                    4
+Ransomware share               37.50%

@@ -1,0 +1,3 @@
+ONS synthetic values
+Period              Value     CV %
+2097               1234.5      1.5

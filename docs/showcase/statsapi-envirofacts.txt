@@ -1,0 +1,5 @@
+EPA Envirofacts synthetic results
+Measure                   Value
+TRI facilities                2
+TRI release lbs          1125.5
+NPL sites                     2

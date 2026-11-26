@@ -1,0 +1,5 @@
+Household credit datasets synthetic values
+Dataset                   Value Vintage                 
+Urban                      0.42 2026-08 (published 2026-10-22)
+NY Fed                   1234.5 2026 Q3                 
+Fed county low             0.81 2025 Q4                 

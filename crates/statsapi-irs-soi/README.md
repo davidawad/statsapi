@@ -11,7 +11,7 @@ statsapi-irs-soi = { git = "https://github.com/davidawad/statsapi", package = "s
 
 ## Usage
 
-See [`examples/basic.rs`](examples/basic.rs) for a compiling complete example. The client is blocking, uses rustls, retries transient network errors and HTTP 429/5xx with jittered backoff, and keeps each downloaded dataset in memory for the client's lifetime. Supply `Client::with_cache_dir(path)` to persist downloads in a caller-chosen directory, or use `Client::new()` for no persistent cache. Chain `.offline()` to prohibit network access and require a cache hit.
+See [`examples/basic.rs`](examples/basic.rs) for a compiling complete example. The client is blocking, uses rustls, retries transient network errors and HTTP 429/5xx with jittered backoff, and streams each bulk CSV and keeps only the requested place's rows (the file is never written to disk and no archive is kept). The IRS has no query API, so the path is `stream`; `Client::with_cache_dir(path)` adds a last-resort ephemeral cache (`ephemeral-cache` crate) of those small per-place extracts: TTL 7 days, size cap 8 MiB, oldest evicted first. The cache answers (`cache`) only when the stream fails. Chain `.offline()` to prohibit network access and require a fresh cache hit. `zip_metric` and `migration_metric` return the value with the `AnswerPath` that answered.
 
 ```rust,no_run
 use statsapi_irs_soi::{Client, Error};
@@ -19,8 +19,8 @@ use statsapi_irs_soi::{Client, Error};
 fn main() -> Result<(), Error> {
     let cache = std::env::var_os("IRS_SOI_DATA_CACHE_DIR").map(std::path::PathBuf::from);
     let mut client = cache.map_or_else(Client::new, Client::with_cache_dir);
-    if let Some(returns) = client.zip_metric("10001", "returns")? {
-        println!("ZIP 10001 reported {returns} returns");
+    if let Some((returns, path)) = client.zip_metric("10001", "returns")? {
+        println!("ZIP 10001 reported {returns} returns ({})", path.as_str());
     }
     Ok(())
 }
@@ -50,6 +50,7 @@ Terms reviewed 2026-11-22. The [IRS privacy policy](https://www.irs.gov/privacy-
 | Redistribution of data | The crate redistributes no upstream data. IRS data are federal government works; downstream users should consult applicable law and current source terms before redistributing datasets. | [IRS privacy policy](https://www.irs.gov/privacy-disclosure/irs-privacy-policy), SOI pages above |
 | Attribution required? | The reviewed pages state no attribution requirement for these downloads; attribution to IRS SOI is provided as a courtesy. | SOI pages above |
 | Rate limits | The reviewed pages state no numeric request limit. Use reasonable request rates; transient 429/5xx responses receive jittered backoff. | SOI pages above |
+
 
 ## License
 

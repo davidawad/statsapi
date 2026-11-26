@@ -1,0 +1,4 @@
+Urban Education synthetic sample
+District         Year             Spending
+9999999          2024             123456.0
+Endpoint         synthetic              81

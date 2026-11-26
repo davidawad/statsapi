@@ -55,6 +55,3 @@ Reviewed 2026-11-23: [ONS developer hub](https://developer.ons.gov.uk/), [Open G
 | Attribution required? | Yes: "Contains public sector information licensed under the Open Government Licence v3.0", plus the ONS as source. |
 | Rate limits | ONS documents a limit of about 120 requests per 10 seconds (HTTP 429 above it); postcodes.io asks for reasonable use. The client retries 429 with backoff. |
 
-## Verified
-
-2026-11-23: `cargo test -p statsapi-ons` (5 unit tests over synthesized fixtures) and `cargo test -p statsapi-ons -- --ignored` (live: Westminster population; reverse-geocode of 51.5072, -0.1276 to E09000033) pass. Fixture values are synthetic.

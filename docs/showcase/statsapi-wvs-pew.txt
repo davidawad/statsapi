@@ -1,0 +1,4 @@
+WVS and Pew synthetic values
+Measure             Vintage          Value
+WVS generalized     2017-2022 Wave 7   25.0
+Pew video use       synthetic-2024     37.0

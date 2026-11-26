@@ -42,3 +42,4 @@ Reviewed 2026-11-22. The ETS [Get the Data page](https://evictionlab.org/evictio
 | Redistribution of data | Not specified for ETS aggregate files. This crate does not redistribute data. |
 | Attribution required | Cite the Eviction Tracking System release as shown on the upstream download page: Peter Hepburn, Adam Chapnik, Danny Grubbs-Donovan, Jacob Haas, Grace Hartley, Olivia Jin, Sarah Johnson, Renee Louis, Jasmine Rangel, Salar Safarkhani, and Matthew Desmond, *Eviction Tracking System: Version 4.0*. Princeton: Princeton University, 2026. |
 | Rate limits | No numeric limit stated on the upstream terms/download page; retry delay is bounded and jittered. |
+

@@ -89,6 +89,10 @@ Build everything: `cargo build --workspace`. The offline tests need no network o
 | `statsapi-worldbank` | Reusable blocking client for the World Bank Indicators API v2 | [README](crates/statsapi-worldbank/README.md) |
 | `statsapi-wvs-pew` | Parsers and weighting for manually downloaded World Values Survey and Pew data files | [README](crates/statsapi-wvs-pew/README.md) |
 
+Every crate README has a usage example (mirrored by `examples/basic.rs`), the endpoints or files it covers, how authentication works, and a terms table (automated access, redistribution, attribution, rate limits) with links to the upstream terms as reviewed. Test fixtures keep each upstream's layout but carry synthesized values, except trimmed US federal public-domain samples.
+
+This project is not affiliated with or endorsed by any of the data providers. Using a client does not change a provider's terms: check them before you redistribute data.
+
 ## License
 
 GPL-3.0-or-later; see [LICENSE](LICENSE).

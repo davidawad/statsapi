@@ -1,0 +1,6 @@
+{"time":1700000000,"states":[
+["aaaaaa","TST1    ","Testland",1700000000,1700000000,-74.0,40.7,1000.0,false,120.0,90.0,0.0,null,1100.0,"1000",false,0],
+["bbbbbb","TST2    ","Testland",1700000000,1700000000,-74.1,40.6,null,true,0.0,10.0,null,null,null,null,false,0],
+["cccccc","TST3    ","Testland",1700000000,1700000000,-73.9,40.8,3000.0,false,200.0,45.0,5.0,null,3100.0,"2000",false,0],
+["dddddd",null,"Testland",1700000000,1700000000,-73.8,40.9,2000.0,false,150.0,180.0,-2.0,null,2100.0,null,false,0]
+]}

@@ -1,0 +1,15 @@
+[package]
+name = "statsapi-ucdp-history"
+version = "0.1.0"
+edition.workspace = true
+license = "GPL-3.0-or-later"
+description = "Reusable CSV decoder for UCDP/PRIO historical conflict datasets"
+
+[dependencies]
+csv = "1"
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
+thiserror = "2"
+zip = { version = "9.0.3", default-features = false, features = ["deflate"] }
+
+[lints]
+workspace = true

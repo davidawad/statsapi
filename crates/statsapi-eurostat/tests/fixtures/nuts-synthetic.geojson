@@ -1,0 +1,5 @@
+{"type":"FeatureCollection","features":[
+{"type":"Feature","properties":{"NUTS_ID":"XX11","LEVL_CODE":2,"NUTS_NAME":"Square","CNTR_CODE":"XX"},"geometry":{"type":"Polygon","coordinates":[[[0,0],[10,0],[10,10],[0,10],[0,0]],[[4,4],[6,4],[6,6],[4,6],[4,4]]]}},
+{"type":"Feature","properties":{"NUTS_ID":"XX12","LEVL_CODE":2,"NUTS_NAME":"Island","CNTR_CODE":"XX"},"geometry":{"type":"Polygon","coordinates":[[[4,4],[6,4],[6,6],[4,6],[4,4]]]}},
+{"type":"Feature","properties":{"NUTS_ID":"XX13","LEVL_CODE":2,"NUTS_NAME":"Parts","CNTR_CODE":"XX"},"geometry":{"type":"MultiPolygon","coordinates":[[[[30,0],[31,0],[31,1],[30,1],[30,0]]],[[[20,0],[21,0],[21,1],[20,1],[20,0]]]]}}
+]}

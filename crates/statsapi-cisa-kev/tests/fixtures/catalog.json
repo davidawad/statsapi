@@ -1,0 +1,112 @@
+{
+ "title": "Synthetic KEV-shaped catalog",
+ "catalogVersion": "2099.01.01",
+ "dateReleased": "2026-11-23T00:00:00.0000Z",
+ "count": 8,
+ "vulnerabilities": [
+  {
+   "cveID": "CVE-2099-0001",
+   "vendorProject": "Acme",
+   "product": "Widget",
+   "vulnerabilityName": "Synthetic flaw",
+   "dateAdded": "2026-11-20",
+   "shortDescription": "synthetic",
+   "requiredAction": "patch",
+   "dueDate": "2026-12-31",
+   "knownRansomwareCampaignUse": "Known",
+   "notes": "",
+   "cwes": []
+  },
+  {
+   "cveID": "CVE-2099-0002",
+   "vendorProject": "Acme",
+   "product": "Widget",
+   "vulnerabilityName": "Synthetic flaw",
+   "dateAdded": "2026-11-18",
+   "shortDescription": "synthetic",
+   "requiredAction": "patch",
+   "dueDate": "2026-12-31",
+   "knownRansomwareCampaignUse": "Unknown",
+   "notes": "",
+   "cwes": []
+  },
+  {
+   "cveID": "CVE-2099-0003",
+   "vendorProject": "Borealis",
+   "product": "Widget",
+   "vulnerabilityName": "Synthetic flaw",
+   "dateAdded": "2026-11-10",
+   "shortDescription": "synthetic",
+   "requiredAction": "patch",
+   "dueDate": "2026-12-31",
+   "knownRansomwareCampaignUse": "Unknown",
+   "notes": "",
+   "cwes": []
+  },
+  {
+   "cveID": "CVE-2099-0004",
+   "vendorProject": "Acme",
+   "product": "Widget",
+   "vulnerabilityName": "Synthetic flaw",
+   "dateAdded": "2026-10-20",
+   "shortDescription": "synthetic",
+   "requiredAction": "patch",
+   "dueDate": "2026-12-31",
+   "knownRansomwareCampaignUse": "Known",
+   "notes": "",
+   "cwes": []
+  },
+  {
+   "cveID": "CVE-2099-0005",
+   "vendorProject": "Cinder",
+   "product": "Widget",
+   "vulnerabilityName": "Synthetic flaw",
+   "dateAdded": "2026-09-15",
+   "shortDescription": "synthetic",
+   "requiredAction": "patch",
+   "dueDate": "2026-12-31",
+   "knownRansomwareCampaignUse": "Unknown",
+   "notes": "",
+   "cwes": []
+  },
+  {
+   "cveID": "CVE-2099-0006",
+   "vendorProject": "Borealis",
+   "product": "Widget",
+   "vulnerabilityName": "Synthetic flaw",
+   "dateAdded": "2026-08-01",
+   "shortDescription": "synthetic",
+   "requiredAction": "patch",
+   "dueDate": "2026-12-31",
+   "knownRansomwareCampaignUse": "Known",
+   "notes": "",
+   "cwes": []
+  },
+  {
+   "cveID": "CVE-2099-0007",
+   "vendorProject": "Cinder",
+   "product": "Widget",
+   "vulnerabilityName": "Synthetic flaw",
+   "dateAdded": "2025-01-02",
+   "shortDescription": "synthetic",
+   "requiredAction": "patch",
+   "dueDate": "2026-12-31",
+   "knownRansomwareCampaignUse": "Unknown",
+   "notes": "",
+   "cwes": []
+  },
+  {
+   "cveID": "CVE-2099-0008",
+   "vendorProject": "Borealis",
+   "product": "Widget",
+   "vulnerabilityName": "Synthetic flaw",
+   "dateAdded": "2026-11-23",
+   "shortDescription": "synthetic",
+   "requiredAction": "patch",
+   "dueDate": "2026-12-31",
+   "knownRansomwareCampaignUse": "Unknown",
+   "notes": "",
+   "cwes": []
+  }
+ ]
+}

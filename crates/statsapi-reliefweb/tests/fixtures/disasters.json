@@ -1,0 +1,4 @@
+{"totalCount":3,"count":3,"data":[
+{"id":"900002","fields":{"name":"Exampleland: Floods - Oct 2026","status":"ongoing","primary_type":{"name":"Flood"},"url_alias":"https://reliefweb.int/disaster/fl-2026-000001-exa","date":{"event":"2026-10-24T00:00:00+00:00"}}},
+{"id":"900001","fields":{"name":"Exampleland: Drought - 2025","status":"past","primary_type":{"name":"Drought"},"date":{"event":"2025-03-01T00:00:00+00:00"}}},
+{"id":"900000","fields":{"status":"past"}}]}

@@ -1,0 +1,52 @@
+Area,ISO 3 code,Date,Area type,Electricity source,Is aggregated source,Generation (TWh),Generation YoY change (TWh),Generation YoY change (%),Share of generation (%),Share of generation YoY change (% points),Emissions (MtCO2e),Emissions YoY change (MtCO2e),Emissions YoY change (%),Share of emissions (%),Emissions intensity (gCO2e/kWh),Continent,Ember region,EU member,OECD member,G20 member,G7 member,ASEAN member
+United States,USA,2026-08-01,Country or economy,Solar,False,49.206,8.078,19.641,10.709,1.127,2.362,0.388,19.656,1.27,48.002,North America,North America,False,True,True,True,False
+United States,USA,2026-08-01,Country or economy,Wind,False,33.317,6.01,22.009,7.251,0.889,0.284,0.052,22.414,0.153,8.524,North America,North America,False,True,True,True,False
+United States,USA,2026-08-01,Country or economy,Hydro,False,18.022,-1.508,-7.721,3.922,-0.628,0.433,-0.036,-7.676,0.233,24.026,North America,North America,False,True,True,True,False
+United States,USA,2026-08-01,Country or economy,Bioenergy,False,4.049,0.012,0.297,0.881,-0.06,0.931,0.002,0.215,0.501,229.933,North America,North America,False,True,True,True,False
+United States,USA,2026-08-01,Country or economy,Other renewables,False,1.504,-0.001,-0.066,0.327,-0.024,0.057,0.0,0.0,0.031,37.899,North America,North America,False,True,True,True,False
+United States,USA,2026-08-01,Country or economy,Nuclear,False,70.661,-0.044,-0.062,15.378,-1.095,0.383,0.0,0.0,0.206,5.42,North America,North America,False,True,True,True,False
+United States,USA,2026-08-01,Country or economy,Coal,False,70.937,1.209,1.734,15.438,-0.807,67.363,1.133,1.711,36.232,949.617,North America,North America,False,True,True,True,False
+United States,USA,2026-08-01,Country or economy,Gas,False,209.843,16.949,8.787,45.669,0.728,112.749,9.107,8.787,60.643,537.302,North America,North America,False,True,True,True,False
+United States,USA,2026-08-01,Country or economy,Other fossil,False,1.945,-0.437,-18.346,0.423,-0.132,1.362,-0.305,-18.296,0.733,700.257,North America,North America,False,True,True,True,False
+United States,USA,2026-08-01,Country or economy,Net imports,False,1.966,0.865,78.565,0.428,0.171,0.0,0.0,,0.0,0.0,North America,North America,False,True,True,True,False
+United States,USA,2026-08-01,Country or economy,Wind and solar,True,82.524,14.089,20.587,17.96,2.016,2.645,0.438,19.846,1.423,32.051,North America,North America,False,True,True,True,False
+United States,USA,2026-08-01,Country or economy,"Hydro, bioenergy and other renewables",True,23.575,-1.497,-5.971,5.131,-0.71,1.421,-0.033,-2.27,0.764,60.276,North America,North America,False,True,True,True,False
+United States,USA,2026-08-01,Country or economy,Renewables,True,106.099,12.592,13.466,23.091,1.305,4.066,0.405,11.063,2.187,38.323,North America,North America,False,True,True,True,False
+United States,USA,2026-08-01,Country or economy,Clean,True,176.76,12.548,7.641,38.469,0.21,4.449,0.405,10.015,2.393,25.17,North America,North America,False,True,True,True,False
+United States,USA,2026-08-01,Country or economy,Fossil,True,282.725,17.721,6.687,61.531,-0.21,181.474,9.934,5.791,97.607,641.875,North America,North America,False,True,True,True,False
+United States,USA,2026-08-01,Country or economy,Total generation,True,459.485,30.269,7.052,100.0,0.0,185.922,10.338,5.888,100.0,404.631,North America,North America,False,True,True,True,False
+United States,USA,2026-08-01,Country or economy,Demand,True,461.452,31.135,7.235,100.428,0.172,,,,,,North America,North America,False,True,True,True,False
+United States,USA,2026-09-01,Country or economy,Solar,False,41.728,5.403,14.874,10.324,0.665,2.003,0.259,14.851,1.242,48.001,North America,North America,False,True,True,True,False
+United States,USA,2026-09-01,Country or economy,Wind,False,33.375,7.702,30.0,8.257,1.431,0.284,0.066,30.275,0.176,8.509,North America,North America,False,True,True,True,False
+United States,USA,2026-09-01,Country or economy,Hydro,False,14.503,-0.325,-2.192,3.588,-0.355,0.348,-0.008,-2.247,0.216,23.995,North America,North America,False,True,True,True,False
+United States,USA,2026-09-01,Country or economy,Bioenergy,False,3.765,-0.084,-2.182,0.931,-0.092,0.866,-0.019,-2.147,0.537,230.013,North America,North America,False,True,True,True,False
+United States,USA,2026-09-01,Country or economy,Other renewables,False,1.457,0.023,1.604,0.36,-0.021,0.055,0.001,1.852,0.034,37.749,North America,North America,False,True,True,True,False
+United States,USA,2026-09-01,Country or economy,Nuclear,False,65.553,0.095,0.145,16.218,-1.187,0.355,0.001,0.282,0.22,5.415,North America,North America,False,True,True,True,False
+United States,USA,2026-09-01,Country or economy,Coal,False,63.293,4.991,8.561,15.659,0.157,60.104,4.727,8.536,37.26,949.615,North America,North America,False,True,True,True,False
+United States,USA,2026-09-01,Country or economy,Gas,False,178.677,10.801,6.434,44.205,-0.433,96.003,5.803,6.433,59.515,537.299,North America,North America,False,True,True,True,False
+United States,USA,2026-09-01,Country or economy,Other fossil,False,1.845,-0.492,-21.053,0.456,-0.165,1.291,-0.345,-21.088,0.8,699.729,North America,North America,False,True,True,True,False
+United States,USA,2026-09-01,Country or economy,Net imports,False,1.491,0.194,14.958,0.369,0.024,0.0,0.0,,0.0,0.0,North America,North America,False,True,True,True,False
+United States,USA,2026-09-01,Country or economy,Wind and solar,True,75.103,13.105,21.138,18.581,2.096,2.287,0.325,16.565,1.418,30.452,North America,North America,False,True,True,True,False
+United States,USA,2026-09-01,Country or economy,"Hydro, bioenergy and other renewables",True,19.726,-0.385,-1.914,4.88,-0.468,1.27,-0.026,-2.006,0.787,64.382,North America,North America,False,True,True,True,False
+United States,USA,2026-09-01,Country or economy,Renewables,True,94.829,12.72,15.492,23.461,1.628,3.557,0.299,9.177,2.205,37.51,North America,North America,False,True,True,True,False
+United States,USA,2026-09-01,Country or economy,Clean,True,160.382,12.815,8.684,39.679,0.441,3.911,0.299,8.278,2.425,24.386,North America,North America,False,True,True,True,False
+United States,USA,2026-09-01,Country or economy,Fossil,True,243.814,15.299,6.695,60.321,-0.441,157.398,10.185,6.919,97.575,645.566,North America,North America,False,True,True,True,False
+United States,USA,2026-09-01,Country or economy,Total generation,True,404.196,28.114,7.475,100.0,0.0,161.31,10.485,6.952,100.0,399.089,North America,North America,False,True,True,True,False
+United States,USA,2026-09-01,Country or economy,Demand,True,405.687,28.308,7.501,100.369,0.024,,,,,,North America,North America,False,True,True,True,False
+United States,USA,2026-10-01,Country or economy,Solar,False,35.659,3.464,10.759,10.055,0.924,1.712,0.167,10.809,1.283,48.01,North America,North America,False,True,True,True,False
+United States,USA,2026-10-01,Country or economy,Wind,False,36.563,-2.971,-7.515,10.31,-0.903,0.311,-0.025,-7.44,0.233,8.506,North America,North America,False,True,True,True,False
+United States,USA,2026-10-01,Country or economy,Hydro,False,13.879,-2.152,-13.424,3.914,-0.633,0.333,-0.052,-13.506,0.25,23.993,North America,North America,False,True,True,True,False
+United States,USA,2026-10-01,Country or economy,Bioenergy,False,3.568,-0.06,-1.654,1.006,-0.023,0.821,-0.013,-1.559,0.615,230.101,North America,North America,False,True,True,True,False
+United States,USA,2026-10-01,Country or economy,Other renewables,False,1.49,0.053,3.688,0.42,0.012,0.057,0.002,3.636,0.043,38.255,North America,North America,False,True,True,True,False
+United States,USA,2026-10-01,Country or economy,Nuclear,False,60.85,1.628,2.749,17.159,0.362,0.329,0.008,2.492,0.247,5.407,North America,North America,False,True,True,True,False
+United States,USA,2026-10-01,Country or economy,Coal,False,50.317,-3.702,-6.853,14.189,-1.132,47.782,-3.527,-6.874,35.801,949.619,North America,North America,False,True,True,True,False
+United States,USA,2026-10-01,Country or economy,Gas,False,150.526,6.541,4.543,42.446,1.608,80.878,3.515,4.544,60.599,537.303,North America,North America,False,True,True,True,False
+United States,USA,2026-10-01,Country or economy,Other fossil,False,1.774,-0.751,-29.743,0.5,-0.216,1.242,-0.525,-29.711,0.931,700.113,North America,North America,False,True,True,True,False
+United States,USA,2026-10-01,Country or economy,Net imports,False,0.817,1.401,-239.897,0.23,0.396,0.0,0.0,,0.0,0.0,North America,North America,False,True,True,True,False
+United States,USA,2026-10-01,Country or economy,Wind and solar,True,72.221,0.493,0.687,20.365,0.021,2.023,0.141,7.492,1.516,28.011,North America,North America,False,True,True,True,False
+United States,USA,2026-10-01,Country or economy,"Hydro, bioenergy and other renewables",True,18.938,-2.158,-10.229,5.34,-0.643,1.21,-0.064,-5.024,0.907,63.893,North America,North America,False,True,True,True,False
+United States,USA,2026-10-01,Country or economy,Renewables,True,91.159,-1.665,-1.794,25.706,-0.621,3.233,0.077,2.44,2.422,35.466,North America,North America,False,True,True,True,False
+United States,USA,2026-10-01,Country or economy,Clean,True,152.01,-0.037,-0.024,42.865,-0.26,3.563,0.087,2.503,2.67,23.439,North America,North America,False,True,True,True,False
+United States,USA,2026-10-01,Country or economy,Fossil,True,202.617,2.089,1.042,57.135,0.26,129.902,-0.538,-0.412,97.331,641.121,North America,North America,False,True,True,True,False
+United States,USA,2026-10-01,Country or economy,Total generation,True,354.627,2.052,0.582,100.0,0.0,133.464,-0.452,-0.338,100.0,376.35,North America,North America,False,True,True,True,False
+United States,USA,2026-10-01,Country or economy,Demand,True,355.444,3.453,0.981,100.23,0.396,,,,,,North America,North America,False,True,True,True,False

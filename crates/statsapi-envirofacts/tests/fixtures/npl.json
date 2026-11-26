@@ -1,0 +1,4 @@
+{"features": [
+  {"attributes": {"Site_Name": "FAR SITE", "Site_EPA_ID": "XX0000000002", "Status": "Final NPL", "City": "Elsewhere", "State": "NJ", "Latitude": 40.70, "Longitude": -74.30}},
+  {"attributes": {"Site_Name": "NEAR SITE", "Site_EPA_ID": "XX0000000001", "Status": "Deleted NPL", "City": "Somewhere", "State": "NJ", "Latitude": 40.55, "Longitude": -74.36}}
+]}

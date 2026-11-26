@@ -1,0 +1,7 @@
+{"properties":{"updateTime":"2030-01-01T09:00:00+00:00","units":"us","periods":[
+{"number":1,"name":"Overnight","isDaytime":false,"temperature":41,"temperatureUnit":"F","startTime":"2030-01-01T04:00:00-05:00"},
+{"number":2,"name":"Tuesday","isDaytime":true,"temperature":60,"temperatureUnit":"F","startTime":"2030-01-01T06:00:00-05:00"},
+{"number":3,"name":"Tuesday Night","isDaytime":false,"temperature":30,"temperatureUnit":"F","startTime":"2030-01-01T18:00:00-05:00"},
+{"number":4,"name":"Wednesday","isDaytime":true,"temperature":20,"temperatureUnit":"C","startTime":"2030-01-02T06:00:00-05:00"},
+{"number":5,"name":"Wednesday Night","isDaytime":false,"temperature":0,"temperatureUnit":"C","startTime":"2030-01-02T18:00:00-05:00"}
+]}}

@@ -1,0 +1,6 @@
+﻿SortOrder,LocID,Notes,ISO3_code,ISO2_code,SDMX_code,LocTypeID,LocTypeName,ParentID,Location,VarID,Variant,Time,TPopulation1Jan,TPopulation1July,TPopulationMale1July,TPopulationFemale1July,PopDensity,PopSexRatio,MedianAgePop,NatChange,NatChangeRT,PopChange,PopGrowthRate,DoublingTime,Births,Births1519,CBR,TFR,NRR,MAC,SRB,Deaths,DeathsMale,DeathsFemale,CDR,LEx,LExMale,LExFemale,LE15,LE15Male,LE15Female,LE65,LE65Male,LE65Female,LE80,LE80Male,LE80Female,InfantDeaths,IMR,LBsurvivingAge1,Under5Deaths,Q5,Q0040,Q0040Male,Q0040Female,Q0060,Q0060Male,Q0060Female,Q1550,Q1550Male,Q1550Female,Q1560,Q1560Male,Q1560Female,NetMigrations,CNMR
+,,,FRA,,,,Country/Area,,France,,Medium,2022,,1000.5,,,,,40.1,,,,,,,,,1.50,,,,,,,,80.0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,10.0,
+,,,FRA,,,,Country/Area,,France,,Medium,2023,,1010.25,,,,,40.5,,,,,,,,,1.45,,,,,,,,80.5,,,,,,,,,,,,,,,,,,,,,,,,,,,,,-5.5,
+,,,FRA,,,,Country/Area,,France,,Medium,2050,,1100.0,,,,,44.0,,,,,,,,,1.60,,,,,,,,84.0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,20.0,
+,,,FRA,,,,Country/Area,,France,,Medium,2051,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,DEU,,,,Country/Area,,Germany,,Medium,2023,,2000.0,,,,,45.0,,,,,,,,,1.40,,,,,,,,81.0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,30.0,

@@ -1,0 +1,3 @@
+[{"status":"SUCCESS","object":{"responseStatusCode":0,"productId":99990001,"coordinate":"4.1.0.0.0.0.0.0.0.0","vectorId":98765,"vectorDataPoint":[
+{"refPer":"2098-02-01","value":123.4,"decimals":1,"scalarFactorCode":0,"statusCode":0,"releaseTime":"2098-03-18T08:30"},
+{"refPer":"2098-01-01","value":null,"decimals":1,"scalarFactorCode":0,"statusCode":1,"releaseTime":"2098-02-18T08:30"}]}}]

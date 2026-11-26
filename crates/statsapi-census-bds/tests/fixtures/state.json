@@ -1,0 +1,5 @@
+[["NAME","YEAR","ESTABS_ENTRY_RATE","ESTABS_EXIT_RATE","JOB_CREATION_RATE","JOB_DESTRUCTION_RATE","NET_JOB_CREATION_RATE","ESTAB","state"],
+["Exampleland","2020","8.1","7.2","14.0","13.1","0.9","25000","99"],
+["Exampleland","2022","9.5","6.1","15.2","11.0","4.2","26000","99"],
+["Exampleland","2021","8.9","6.6","14.8","11.9","2.9","25500","99"],
+["Exampleland","2023",null,null,null,null,null,null,"99"]]

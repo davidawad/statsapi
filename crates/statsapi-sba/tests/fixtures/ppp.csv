@@ -1,0 +1,5 @@
+LoanNumber,DateApproved,BorrowerZip,CurrentApprovalAmount,ProjectCountyName,ProjectState,ProjectZip
+1,05/01/2020,10001-0001,10000.5,SAMPLE,zz,10001-9999
+2,05/02/2020,10001,20000,SAMPLE,ZZ,
+3,05/03/2020,20002,5000,OTHER,ZZ,20002
+4,05/03/2020,,not-a-number,OTHER,ZZ,

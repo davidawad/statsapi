@@ -1,0 +1,5 @@
+[
+  {"tri_facility_id": "99999TESTA00001", "environmental_medium": "AIR FUG", "total_release": 125.5, "release_na": "0"},
+  {"tri_facility_id": "99999TESTA00001", "environmental_medium": "WATER", "total_release": null, "release_na": "1"},
+  {"tri_facility_id": "99999TESTB00002", "environmental_medium": "AIR STACK", "total_release": 1000, "release_na": "0"}
+]

@@ -1,0 +1,102 @@
+{
+ "results": [
+  {
+   "filePath": "/data/daily-summaries/access/USW00094728.csv",
+   "boundingPoints": [
+    {
+     "coordinates": [
+      -73.96925,
+      40.77898
+     ],
+     "type": "point"
+    }
+   ],
+   "endDate": "2026-11-15T23:59:59",
+   "startDate": "1869-01-01T00:00:00"
+  },
+  {
+   "filePath": "/data/daily-summaries/access/USW00014734.csv",
+   "boundingPoints": [
+    {
+     "coordinates": [
+      -74.16927,
+      40.68275
+     ],
+     "type": "point"
+    }
+   ],
+   "endDate": "2026-11-15T23:59:59",
+   "startDate": "1843-05-01T00:00:00"
+  },
+  {
+   "filePath": "/data/daily-summaries/access/USW00094741.csv",
+   "boundingPoints": [
+    {
+     "coordinates": [
+      -74.05616,
+      40.85898
+     ],
+     "type": "point"
+    }
+   ],
+   "endDate": "2026-11-15T23:59:59",
+   "startDate": "1969-08-13T00:00:00"
+  },
+  {
+   "filePath": "/data/daily-summaries/access/USC00280907.csv",
+   "boundingPoints": [
+    {
+     "coordinates": [
+      -74.39635,
+      40.89174
+     ],
+     "type": "point"
+    }
+   ],
+   "endDate": "2026-11-15T23:59:59",
+   "startDate": "1892-09-13T00:00:00"
+  },
+  {
+   "filePath": "/data/daily-summaries/access/USC00283704.csv",
+   "boundingPoints": [
+    {
+     "coordinates": [
+      -74.152,
+      40.7481
+     ],
+     "type": "point"
+    }
+   ],
+   "endDate": "2026-11-16T23:59:59",
+   "startDate": "1996-01-01T00:00:00"
+  },
+  {
+   "filePath": "/data/daily-summaries/access/USW00054743.csv",
+   "boundingPoints": [
+    {
+     "coordinates": [
+      -74.28284,
+      40.87645
+     ],
+     "type": "point"
+    }
+   ],
+   "endDate": "2026-11-15T23:59:59",
+   "startDate": "1999-06-01T00:00:00"
+  },
+  {
+   "filePath": "/data/daily-summaries/access/USC00288884.csv",
+   "boundingPoints": [
+    {
+     "coordinates": [
+      -74.05616,
+      40.85898
+     ],
+     "type": "point"
+    }
+   ],
+   "endDate": "2026-11-15T23:59:59",
+   "startDate": "2023-04-17T00:00:00"
+  }
+ ]
+}

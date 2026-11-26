@@ -1,0 +1,37 @@
+<?xml version="1.0" standalone="yes"?>
+<sdnList xmlns="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/XML">
+  <publshInformation>
+    <Publish_Date>11/20/2026</Publish_Date>
+    <Record_Count>4</Record_Count>
+  </publshInformation>
+  <sdnEntry>
+    <uid>1001</uid>
+    <lastName>EXAMPLE TRADING CO</lastName>
+    <sdnType>Entity</sdnType>
+    <programList><program>IRAN</program></programList>
+    <addressList><address><uid>9001</uid><city>Tehran</city><country>Iran</country></address></addressList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>1002</uid>
+    <lastName>SAMPLE</lastName>
+    <firstName>PERSON</firstName>
+    <sdnType>Individual</sdnType>
+    <programList><program>IRAN</program><program>SDGT</program></programList>
+    <addressList><address><uid>9002</uid><country>Turkey</country></address></addressList>
+    <nationalityList><nationality><uid>9003</uid><country>Iran</country><mainEntry>true</mainEntry></nationality></nationalityList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>1003</uid>
+    <lastName>PLACEHOLDER</lastName>
+    <sdnType>Individual</sdnType>
+    <programList><program>IRAN</program></programList>
+    <addressList><address><uid>9004</uid><country>Region: Iran</country></address></addressList>
+  </sdnEntry>
+  <sdnEntry>
+    <uid>1004</uid>
+    <lastName>OTHER LTD</lastName>
+    <sdnType>Entity</sdnType>
+    <programList><program>RUSSIA-EO14024</program></programList>
+    <addressList><address><uid>9005</uid><country>Russia</country></address></addressList>
+  </sdnEntry>
+</sdnList>

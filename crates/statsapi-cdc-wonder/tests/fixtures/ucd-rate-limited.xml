@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<page>
+<title>Processing Error</title><message>Request rate exceeded. To protect system resources, API/XML requests must have at least 15 seconds between consecutive requests.</message>
+</page>

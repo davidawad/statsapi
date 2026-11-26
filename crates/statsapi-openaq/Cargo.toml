@@ -1,0 +1,15 @@
+[package]
+name = "statsapi-openaq"
+version = "0.1.0"
+edition.workspace = true
+license = "GPL-3.0-or-later"
+publish = false
+description = "Reusable blocking Rust client for the OpenAQ v3 air quality API"
+
+[lints]
+workspace = true
+
+[dependencies]
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
+serde_json = "1"
+thiserror = "2"

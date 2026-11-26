@@ -1,0 +1,15 @@
+[package]
+name = "statsapi-senate-lda"
+version = "0.1.0"
+edition.workspace = true
+license = "GPL-3.0-or-later"
+publish = false
+description = "Reusable blocking client for the US Senate Lobbying Disclosure Act (LDA) REST API"
+readme = "README.md"
+
+[lints]
+workspace = true
+
+[dependencies]
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
+serde_json = { version = "1", features = ["preserve_order"] }

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Sanctions xmlns="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/ADVANCED_XML">
+  <DateOfIssue CalendarTypeID="1">
+    <Year>2026</Year>
+    <Month>11</Month>
+    <Day>20</Day>
+  </DateOfIssue>
+  <SanctionsEntries>
+    <SanctionsEntry ID="1001" ProfileID="1001" ListID="1550">
+      <EntryEvent ID="1001" EntryEventTypeID="1" LegalBasisID="1">
+        <Comment />
+        <Date CalendarTypeID="1">
+          <Year>2019</Year>
+          <Month>5</Month>
+          <Day>2</Day>
+        </Date>
+      </EntryEvent>
+      <SanctionsMeasure ID="10011" SanctionsTypeID="1">
+        <Comment>IRAN</Comment>
+        <DatePeriod CalendarTypeID="1" YearFixed="true" MonthFixed="true" DayFixed="true" />
+      </SanctionsMeasure>
+    </SanctionsEntry>
+    <SanctionsEntry ID="1002" ProfileID="1002" ListID="1550">
+      <EntryEvent ID="1002" EntryEventTypeID="1" LegalBasisID="1">
+        <Comment />
+        <Date CalendarTypeID="1">
+          <Year>2026</Year>
+          <Month>10</Month>
+          <Day>3</Day>
+        </Date>
+      </EntryEvent>
+      <SanctionsMeasure ID="10021" SanctionsTypeID="1">
+        <Comment>IRAN</Comment>
+        <DatePeriod CalendarTypeID="1" YearFixed="true" MonthFixed="true" DayFixed="true" />
+      </SanctionsMeasure>
+    </SanctionsEntry>
+    <SanctionsEntry ID="1003" ProfileID="1003" ListID="1550">
+      <EntryEvent ID="1003" EntryEventTypeID="1" LegalBasisID="1">
+        <Comment />
+        <Date CalendarTypeID="1">
+          <Year>2026</Year>
+          <Month>8</Month>
+          <Day>24</Day>
+        </Date>
+      </EntryEvent>
+      <SanctionsMeasure ID="10031" SanctionsTypeID="1">
+        <Comment>IRAN</Comment>
+        <DatePeriod CalendarTypeID="1" YearFixed="true" MonthFixed="true" DayFixed="true" />
+      </SanctionsMeasure>
+    </SanctionsEntry>
+    <SanctionsEntry ID="1004" ProfileID="1004" ListID="1550">
+      <EntryEvent ID="1004" EntryEventTypeID="1" LegalBasisID="1">
+        <Comment />
+        <Date CalendarTypeID="1">
+          <Year>2026</Year>
+          <Month>11</Month>
+          <Day>19</Day>
+        </Date>
+      </EntryEvent>
+      <SanctionsMeasure ID="10041" SanctionsTypeID="1">
+        <Comment>IRAN</Comment>
+        <DatePeriod CalendarTypeID="1" YearFixed="true" MonthFixed="true" DayFixed="true" />
+      </SanctionsMeasure>
+    </SanctionsEntry>
+  </SanctionsEntries>
+</Sanctions>

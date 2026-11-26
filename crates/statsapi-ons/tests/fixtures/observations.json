@@ -1,0 +1,5 @@
+{"dimensions":{},"limit":10000,"observations":[
+{"dimensions":{"Time":{"id":"2096","label":"2096"}},"metadata":{"Data Marking":""},"observation":"1100.0"},
+{"dimensions":{"Time":{"id":"2097","label":"2097"}},"metadata":{"CV":"1.5","Data Marking":""},"observation":"1234.5"},
+{"dimensions":{"Time":{"id":"2095","label":"2095"}},"metadata":{"Data Marking":"x"},"observation":"x"},
+{"dimensions":{"Time":{"id":"2094","label":"2094"}},"observation":"1000"}]}

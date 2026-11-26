@@ -1,0 +1,4 @@
+{"meta":{"name":"openaq-api","found":3},"results":[
+{"id":7,"name":"Manhattan Station","coordinates":{"latitude":40.71,"longitude":-74.0},"sensors":[{"id":101,"name":"pm25 µg/m³","parameter":{"id":2,"name":"pm25","units":"µg/m³"}},{"id":102,"name":"o3","parameter":{"id":10,"name":"o3","units":"ppm"}}]},
+{"id":8,"name":"Newark Station","coordinates":{"latitude":40.73,"longitude":-74.17},"sensors":[{"id":201,"name":"pm25","parameter":{"id":2,"name":"pm25","units":"µg/m³"}}]},
+{"id":9,"name":"Ozone only","coordinates":{"latitude":40.8,"longitude":-74.1},"sensors":[{"id":301,"name":"o3","parameter":{"id":10,"name":"o3","units":"ppm"}}]}]}

@@ -1,0 +1,6 @@
+{"type":"FeatureCollection","features":[
+{"properties":{"id":"urn:test:1","event":"Flash Flood Warning","severity":"Severe","headline":"Flash Flood Warning issued for Example County","expires":"2030-01-01T12:00:00-06:00"}},
+{"properties":{"id":"urn:test:2","event":"Special Weather Statement","severity":"Moderate","headline":null,"expires":"2030-01-01T10:00:00-06:00"}},
+{"properties":{"id":"urn:test:3","event":"Heat Advisory","severity":"Minor"}},
+{"properties":{"id":"urn:test:4","event":"Test Message","severity":"Mystery"}}
+],"title":"Current watches, warnings, and advisories for 10.0000 N, 10.0000 W"}

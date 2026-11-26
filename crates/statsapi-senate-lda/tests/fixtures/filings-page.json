@@ -1,0 +1,48 @@
+{
+  "count": 3,
+  "next": "https://lda.senate.gov/api/v1/filings/?filing_period=second_quarter&filing_type=Q2&filing_year=2025&page=2&page_size=25",
+  "previous": null,
+  "results": [
+    {
+      "filing_uuid": "00000000-0000-4000-8000-000000000001",
+      "filing_type": "Q2",
+      "filing_year": 2025,
+      "filing_period": "second_quarter",
+      "income": "40000.00",
+      "expenses": null,
+      "registrant": {"id": 1, "name": "Example Firm LLC", "state": "NJ"},
+      "client": {"id": 2, "name": "Example Client Inc", "state": "NJ"},
+      "lobbying_activities": [
+        {"general_issue_code": "TAX", "general_issue_code_display": "Taxes"},
+        {"general_issue_code": "TAX", "general_issue_code_display": "Taxes"},
+        {"general_issue_code": "HCR", "general_issue_code_display": "Health Issues"}
+      ]
+    },
+    {
+      "filing_uuid": "00000000-0000-4000-8000-000000000002",
+      "filing_type": "Q2",
+      "filing_year": 2025,
+      "filing_period": "second_quarter",
+      "income": null,
+      "expenses": "125000.50",
+      "registrant": {"id": 3, "name": "Example Corp", "state": "NJ"},
+      "client": {"id": 3, "name": "Example Corp", "state": "NJ"},
+      "lobbying_activities": [
+        {"general_issue_code": "TAX", "general_issue_code_display": "Taxes"}
+      ]
+    },
+    {
+      "filing_uuid": "00000000-0000-4000-8000-000000000003",
+      "filing_type": "Q2A",
+      "filing_year": 2025,
+      "filing_period": "second_quarter",
+      "income": "99999.00",
+      "expenses": null,
+      "registrant": {"id": 1, "name": "Example Firm LLC", "state": "NJ"},
+      "client": {"id": 2, "name": "Example Client Inc", "state": "NJ"},
+      "lobbying_activities": [
+        {"general_issue_code": "HCR", "general_issue_code_display": "Health Issues"}
+      ]
+    }
+  ]
+}

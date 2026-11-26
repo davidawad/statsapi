@@ -1,0 +1,5 @@
+"AsOfDate","Program","LocationID","BorrName","BorrStreet","BorrCity","BorrState","BorrZip","GrossApproval","SBAGuaranteedApproval","ApprovalDate","ApprovalFY","NaicsCode","NaicsDescription","ProjectCounty","ProjectState","JobsSupported"
+"2030-01-31"," 7A","0000001","Example Borrower One","1 Test Way","Exampleton","ZZ","10001-1234","100000.0","75000.0","2029-11-02","2030","722511","Full-Service Restaurants","SAMPLE","ZZ","3.0"
+"2030-01-31"," 7A","0000002","Example Borrower Two","2 Test Way","Exampleton","ZZ","10001","250000.5","187500.0","2020-03-15","2020","541110","Offices of Lawyers","SAMPLE","ZZ","5.0"
+"2030-01-31"," 7A","0000003","Example Borrower Three","3 Test Way","Elsewhere","ZZ","","50000.0","40000.0","","2020","541110","Offices of Lawyers","OTHER","ZZ","1.0"
+"2030-01-31","504","0000004","Example Borrower Four","4 Test Way","Exampleton","ZZ","10001","900000.0","","2029-12-20","2030","722511","Full-Service Restaurants","SAMPLE","ZZ","9.0"

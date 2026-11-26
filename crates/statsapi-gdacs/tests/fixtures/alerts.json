@@ -1,0 +1,5 @@
+{"type":"FeatureCollection","features":[
+{"type":"Feature","geometry":{"type":"Point","coordinates":[10.0,20.0]},"properties":{"eventtype":"EQ","eventid":9000001,"name":"Synthetic quake near Examplia","alertlevel":"Orange","iscurrent":"true","fromdate":"2026-11-10T00:00:00","todate":"2026-11-12T00:00:00","iso3":"EXA","url":{"report":"https://www.gdacs.org/report.aspx?eventid=9000001&eventtype=EQ"},"affectedcountries":[{"iso2":"EX","iso3":"EXA","countryname":"Examplia"},{"iso2":"SA","iso3":"SMP","countryname":"Sampleland"}]}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[11.0,21.0]},"properties":{"eventtype":"TC","eventid":9000002,"name":"Synthetic cyclone ZETA","alertlevel":"Red","iscurrent":"false","fromdate":"2026-06-01T00:00:00","todate":"2026-06-09T00:00:00","iso3":"EXA","url":{"report":"https://www.gdacs.org/report.aspx?eventid=9000002&eventtype=TC"},"affectedcountries":[{"iso2":"EX","iso3":"EXA","countryname":"Examplia"}]}},
+{"type":"Feature","properties":{"eventtype":"FL","eventid":"bad"}}
+]}

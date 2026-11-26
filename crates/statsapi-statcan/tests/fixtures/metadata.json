@@ -1,0 +1,6 @@
+[{"status":"SUCCESS","object":{"responseStatusCode":0,"productId":"99990001","cubeTitleEn":"Synthetic cube","cubeEndDate":"2098-01-01","frequencyCode":6,"dimension":[
+{"dimensionPositionId":1,"dimensionNameEn":"Geography","member":[
+{"memberId":1,"parentMemberId":null,"memberNameEn":"Canada","classificationCode":"11124","geoLevel":0},
+{"memberId":4,"parentMemberId":1,"memberNameEn":"Synthetic Province","classificationCode":"35","geoLevel":2},
+{"memberId":5,"parentMemberId":4,"memberNameEn":"Synthetic City","classificationCode":null,"geoLevel":3}]},
+{"dimensionPositionId":2,"dimensionNameEn":"Measure","member":[{"memberId":1,"memberNameEn":"Synthetic measure"}]}]}}]

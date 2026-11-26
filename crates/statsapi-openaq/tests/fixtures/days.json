@@ -1,0 +1,4 @@
+{"meta":{"name":"openaq-api","found":3},"results":[
+{"value":8.0,"parameter":{"id":2,"name":"pm25","units":"µg/m³"},"period":{"label":"1day","datetimeFrom":{"utc":"2026-11-20T05:00:00Z","local":"2026-11-20T00:00:00-05:00"},"datetimeTo":{"utc":"2026-11-21T05:00:00Z","local":"2026-11-21T00:00:00-05:00"}}},
+{"value":10.0,"period":{"label":"1day","datetimeFrom":{"utc":"2026-11-21T05:00:00Z"},"datetimeTo":{"utc":"2026-11-22T05:00:00Z"}}},
+{"value":12.0,"period":{"label":"1day","datetimeFrom":{"utc":"2026-11-22T05:00:00Z"},"datetimeTo":{"utc":"2026-11-23T05:00:00Z"}}}]}

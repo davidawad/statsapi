@@ -1,0 +1,1 @@
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-74.25,40.75,41.5]},"properties":{"parameter":{"T2M":{"20250101":2.5,"20250102":-999.0,"20250103":4.0},"PRECTOTCORR":{"20250101":0.0,"20250102":1.5,"20250103":3.0}}},"header":{"fill_value":-999.0,"start":"20250101","end":"20250103"},"parameters":{"T2M":{"units":"C"},"PRECTOTCORR":{"units":"mm/day"}}}
